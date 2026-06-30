@@ -298,12 +298,17 @@ class _RidersManagementScreenState extends State<RidersManagementScreen> {
                           backgroundColor: isActive
                               ? Colors.blue.withOpacity(0.2)
                               : Colors.red.withOpacity(0.2),
-                          child: Icon(
-                            Icons.person,
-                            color: isActive
-                                ? Colors.blueAccent
-                                : Colors.redAccent,
-                          ),
+                          backgroundImage: rider['avatar_url'] != null && (rider['avatar_url'] as String).isNotEmpty
+                              ? NetworkImage(rider['avatar_url'] as String)
+                              : null,
+                          child: rider['avatar_url'] == null || (rider['avatar_url'] as String).isEmpty
+                              ? Icon(
+                                  Icons.person,
+                                  color: isActive
+                                      ? Colors.blueAccent
+                                      : Colors.redAccent,
+                                )
+                              : null,
                         ),
                         title: Text(
                           (rider['full_name'] ?? 'Sem nome').toString().trim(),

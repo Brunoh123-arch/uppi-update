@@ -113,6 +113,10 @@ class AuthRepositoryProd implements AuthRepository {
         // Usuário existente
         final fullName = row['full_name']?.toString() ?? '';
         final nameParts = fullName.split(' ');
+        final avatarUrl = row['avatar_url'] as String?;
+        final profileImage = (avatarUrl != null && avatarUrl.isNotEmpty)
+            ? MediaEntity(id: '', address: avatarUrl)
+            : null;
         return Right(VerifyOtpResponse(
           jwtToken: 'supabase_phone',
           profile: ProfileEntity(
@@ -122,7 +126,7 @@ class AuthRepositoryProd implements AuthRepository {
             countryCode: 'BR',
             email: row['email'] as String?,
             gender: null,
-            profileImage: null,
+            profileImage: profileImage,
             presetProfileImage: row['preset_avatar_number'] as int?,
             number: row['phone'] as String? ?? phone,
             idNumber: row['id_number'] as String?,
@@ -253,6 +257,12 @@ class AuthRepositoryProd implements AuthRepository {
           .maybeSingle();
       final userData = row ?? {};
 
+      final avatarUrl = userData['avatar_url'] as String?;
+      final profileImage = (avatarUrl != null && avatarUrl.isNotEmpty)
+          ? MediaEntity(id: '', address: avatarUrl)
+          : null;
+      final presetProfileImage = userData['preset_avatar_number'] as int?;
+
       return Right(ProfileEntity(
         firstName: firstName,
         lastName: lastName,
@@ -260,8 +270,8 @@ class AuthRepositoryProd implements AuthRepository {
         idNumber: userData['id_number'] as String?,
         countryCode: 'BR',
         gender: gender,
-        profileImage: null,
-        presetProfileImage: null,
+        profileImage: profileImage,
+        presetProfileImage: presetProfileImage,
         number: userData['phone'] as String? ?? phone ?? '',
       ));
     } catch (e) {
