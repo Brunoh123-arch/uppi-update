@@ -1,0 +1,24 @@
+"notification_new_message_title" = "Nova Mensagem";
+"notification_arrived_title" = "O Motorista Chegou!";
+"notification_arrived_body" = "Seu motorista chegou ao local de embarque.";
+"notification_started_title" = "Corrida Iniciada";
+"notification_started_body" = "Sua viagem começou. Boa corrida!";
+"notification_waiting_for_pay_title" = "Aguardando Pagamento";
+"notification_waiting_for_pay_body" = "A viagem foi concluída. Por favor, realize o pagamento.";
+"notification_finished_title" = "Viagem Concluída!";
+"notification_finished_body" = "Sua viagem foi concluída. O pagamento foi processado com sucesso.";
+"notification_cancel_title" = "Corrida Cancelada";
+"notification_cancel_body" = "Sua viagem foi cancelada. Você pode solicitar uma nova corrida quando quiser.";
+"notification_found_title" = "Motorista a Caminho!";
+"notification_found_body" = "Seu motorista está a caminho do local de embarque.";
+"notification_booking_assigned_title" = "Corrida Agendada Confirmada!";
+"notification_booking_assigned_body" = "Sua corrida para %@ foi confirmada e um motorista foi atribuído a você.";
+
+"notification_new_request_title" = "Nova Solicitação";
+"notification_new_request_body" = "Uma nova solicitação de corrida está disponível.";
+"notification_paid_title" = "Pagamento Recebido!";
+"notification_paid_body" = "O pagamento da corrida foi concluído com sucesso.";
+"notification_assigned_title" = "Corrida Atribuída";
+"notification_assigned_body" = "Você foi atribuído a uma corrida agendada para %@. De: %@ -> Para: %@";
+"notification_upcoming_ride_title" = "Corrida se Aproximando";
+"notification_upcoming_ride_body" = "Você tem uma corrida agendada para iniciar em menos de 10 minutos.";

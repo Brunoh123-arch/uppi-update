@@ -1,0 +1,195 @@
+import 'package:auto_route/auto_route.dart';
+import 'package:uppi_motorista/features/profile/presentation/dialogs/delete_account_dialog.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_common/core/color_palette/color_palette.dart';
+import 'package:flutter_common/core/enums/gender.dart';
+import 'package:flutter_common/core/presentation/buttons/app_bordered_button.dart';
+import 'package:flutter_common/core/presentation/chips/square_icon_chip.dart';
+import 'package:ionicons/ionicons.dart';
+import 'package:uppi_motorista/core/blocs/auth_bloc.dart';
+import 'package:uppi_motorista/core/extensions/extensions.dart';
+import 'package:flutter_common/core/presentation/responsive_dialog/app_top_bar.dart';
+
+import 'package:flutter_common/core/presentation/avatars/app_avatar.dart';
+import 'package:uppi_motorista/gen/assets.gen.dart';
+import 'package:uppi_motorista/core/router/app_router.dart';
+
+@RoutePage(name: 'DriverProfileInfoRoute')
+class ProfileInfoScreen extends StatelessWidget {
+  const ProfileInfoScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: context.theme.scaffoldBackgroundColor,
+      padding: EdgeInsets.symmetric(
+        horizontal: context.responsive(16, xl: 24),
+        vertical: context.responsive(16, xl: 24),
+      ),
+      child: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          return state.map(
+            unauthenticated: (_) => const Text("Unauthorized"),
+            authenticated: (authenticated) => SafeArea(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          context.responsive(
+                            const SizedBox(),
+                            xl: const SizedBox(height: 80),
+                          ),
+                          AppTopBar(title: context.translate.profileInfo),
+                          const SizedBox(height: 32),
+                          AppAvatar(
+                            avatar: state.avatar,
+                            defaultAvatarPath: Assets.avatars.a1.path,
+                            size: 80,
+                          ),
+                          const SizedBox(height: 32),
+                          Row(
+                            children: [
+                              const SquareIconChip(icon: Ionicons.person),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  context.translate.fullName,
+                                  style: context.bodyMedium?.copyWith(
+                                    color: ColorPalette.neutralVariant50,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                authenticated.profile.fullName,
+                                style: context.labelLarge,
+                              ),
+                            ],
+                          ),
+                          const Divider(indent: 48, height: 16),
+                          InkWell(
+                            onTap: () => context.router.push(const DriverEditPhoneNumberRoute()),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                children: [
+                                  const SquareIconChip(icon: Ionicons.call),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      context.translate.mobileNumber,
+                                      style: context.bodyMedium?.copyWith(
+                                        color: ColorPalette.neutralVariant50,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    authenticated.profile.mobileNumberFormatted,
+                                    style: context.labelLarge,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Icon(
+                                    Ionicons.chevron_forward,
+                                    size: 16,
+                                    color: ColorPalette.neutralVariant50,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const Divider(indent: 48, height: 16),
+                          Row(
+                            children: [
+                              const SquareIconChip(icon: Ionicons.mail),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  context.translate.email,
+                                  style: context.bodyMedium?.copyWith(
+                                    color: ColorPalette.neutralVariant50,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                authenticated.profile.email ?? "-",
+                                style: context.labelLarge,
+                              ),
+                            ],
+                          ),
+                          const Divider(indent: 48, height: 16),
+                          if (authenticated.profile.certificateNumber != null &&
+                              authenticated
+                                  .profile
+                                  .certificateNumber!
+                                  .isNotEmpty) ...[
+                            Row(
+                              children: [
+                                const SquareIconChip(icon: Ionicons.id_card),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'CPF',
+                                    style: context.bodyMedium?.copyWith(
+                                      color: ColorPalette.neutralVariant50,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  authenticated.profile.certificateNumber!,
+                                  style: context.labelLarge,
+                                ),
+                              ],
+                            ),
+                            const Divider(indent: 48, height: 16),
+                          ],
+                          Row(
+                            children: [
+                              const SquareIconChip(icon: Ionicons.male_female),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  context.translate.gender,
+                                  style: context.bodyMedium?.copyWith(
+                                    color: ColorPalette.neutralVariant50,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                authenticated.profile.gender?.title(context) ??
+                                    context.translate.unknown,
+                                style: context.labelLarge,
+                              ),
+                            ],
+                          ),
+                          const Divider(indent: 48, height: 16),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: context.responsive(double.infinity, xl: null),
+                    child: AppBorderedButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          useSafeArea: false,
+                          builder: (context) => const DeleteAccountDialog(),
+                        );
+                      },
+                      title: context.translate.deleteAccount,
+                      textColor: ColorPalette.error40,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

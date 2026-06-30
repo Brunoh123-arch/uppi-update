@@ -1,0 +1,36 @@
+# CODEOWNERS — Uppi Brasil
+#
+# Define os revisores obrigatórios para Pull Requests por área de responsabilidade.
+# Documentação: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Formato: <padrão de caminho> <@usuário ou @org/time>
+# O último padrão que corresponder a um arquivo tem precedência.
+
+# --- Revisores Padrão (para tudo que não for coberto abaixo) ---
+*                          @uppi-brasil/tech-leads
+
+# --- Backend & Segurança ---
+/supabase/                 @uppi-brasil/backend-team
+/supabase/functions/       @uppi-brasil/backend-team
+/supabase/migrations/      @uppi-brasil/backend-team @uppi-brasil/tech-leads
+
+# --- Super App (Passageiro + Motorista) ---
+/apps/rider-frontend/      @uppi-brasil/mobile-team
+/apps/driver-frontend/     @uppi-brasil/mobile-team
+
+# --- Admin Panel (Flutter Web) ---
+/apps/admin_panel/         @uppi-brasil/web-team
+
+# --- Libs Compartilhadas ---
+/libs/                     @uppi-brasil/mobile-team @uppi-brasil/tech-leads
+
+# --- CI/CD e Configurações de Build ---
+/.github/                  @uppi-brasil/tech-leads
+/scripts/                  @uppi-brasil/tech-leads
+/melos.yaml                @uppi-brasil/tech-leads
+
+# --- Documentação ---
+/docs/                     @uppi-brasil/tech-leads
+README.md                  @uppi-brasil/tech-leads
+SECURITY.md                @uppi-brasil/tech-leads
+CHANGELOG.md               @uppi-brasil/tech-leads

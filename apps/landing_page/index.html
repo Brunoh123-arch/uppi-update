@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uppi - Super App de Mobilidade Urbana</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="#" class="logo">
+                <span class="logo-accent">U</span>ppi
+            </a>
+            <ul class="nav-links">
+                <li><a href="#como-funciona">Como Funciona</a></li>
+                <li><a href="#vantagens">Vantagens</a></li>
+                <li><a href="#seguranca">Segurança</a></li>
+                <li><a href="#estimativa">Seja Motorista</a></li>
+            </ul>
+            <a href="#baixar" class="btn btn-primary nav-btn">Baixar App</a>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <header class="hero">
+        <div class="container hero-container">
+            <div class="hero-content">
+                <span class="badge">🚀 O Futuro da Mobilidade</span>
+                <h1>Sua cidade, seu caminho. Vá de <span class="text-gradient">Carro ou Moto</span></h1>
+                <p>O Uppi conecta você aos melhores motoristas e motociclistas da sua região com rapidez, segurança máxima e o preço justo que você merece. Pague direto via PIX.</p>
+                
+                <div class="hero-btns" id="baixar">
+                    <a href="#" class="btn btn-primary btn-icon">
+                        <ion-icon name="logo-google-playstore"></ion-icon>
+                        <div>
+                            <small>Baixe para Passageiro</small>
+                            <span>Google Play</span>
+                        </div>
+                    </a>
+                    <a href="#" class="btn btn-secondary btn-icon">
+                        <ion-icon name="car-outline"></ion-icon>
+                        <div>
+                            <small>Baixe para Motorista</small>
+                            <span>Google Play</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="glowing-orb"></div>
+                <!-- PURE CSS PHONE MOCKUP -->
+                <div class="phone-mockup">
+                    <div class="phone-screen">
+                        <div class="app-header">
+                            <div class="app-logo">Uppi</div>
+                            <ion-icon name="notifications-outline"></ion-icon>
+                        </div>
+                        <div class="app-map-placeholder">
+                            <div class="map-pin-pickup">
+                                <div class="pulse-ring"></div>
+                            </div>
+                            <div class="map-pin-driver">
+                                <ion-icon name="car-sport"></ion-icon>
+                            </div>
+                        </div>
+                        <div class="app-card">
+                            <h3>Para onde vamos hoje?</h3>
+                            <div class="input-fake">
+                                <span class="dot green"></span>
+                                <span>Seu local atual</span>
+                            </div>
+                            <div class="input-fake active">
+                                <span class="dot red"></span>
+                                <span>Inserir destino...</span>
+                            </div>
+                            <div class="ride-options">
+                                <div class="option active">
+                                    <ion-icon name="car-outline"></ion-icon>
+                                    <span>Uppi Carro</span>
+                                    <small>R$ 12,90</small>
+                                </div>
+                                <div class="option">
+                                    <ion-icon name="bicycle-outline"></ion-icon>
+                                    <span>Uppi Moto</span>
+                                    <small>R$ 7,50</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- CARACTERÍSTICAS -->
+    <section id="como-funciona" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Por que viajar com o <span class="text-gradient">Uppi</span>?</h2>
+                <p>Desenvolvemos soluções inteligentes para tornar suas viagens diárias mais confortáveis e seguras.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <ion-icon name="flash-outline"></ion-icon>
+                    </div>
+                    <h3>PIX Instantâneo</h3>
+                    <p>Sem necessidade de cadastrar cartões. O QR Code do PIX é gerado na hora no fim da corrida para pagamento rápido.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <ion-icon name="shield-checkmark-outline"></ion-icon>
+                    </div>
+                    <h3>Segurança Máxima</h3>
+                    <p>Todos os motoristas parceiros passam por checagem rigorosa de antecedentes criminais e validação de documentos.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <ion-icon name="options-outline"></ion-icon>
+                    </div>
+                    <h3>Carro ou Moto</h3>
+                    <p>Escolha o conforto de um carro para dias chuvosos ou a agilidade e economia da moto para fugir do trânsito.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABA INTERATIVA VANTAGENS -->
+    <section id="vantagens" class="tabs-section">
+        <div class="container">
+            <div class="tabs-container">
+                <div class="tabs-header">
+                    <button class="tab-btn active" onclick="switchTab('passageiro')">Para Passageiros</button>
+                    <button class="tab-btn" onclick="switchTab('motorista')">Para Motoristas</button>
+                </div>
+
+                <div id="tab-passageiro" class="tab-content active">
+                    <div class="tab-grid">
+                        <div class="tab-text">
+                            <h2>Sua melhor opção de transporte diário</h2>
+                            <ul class="benefit-list">
+                                <li>
+                                    <ion-icon name="checkmark-circle"></ion-icon>
+                                    <span><strong>Preço justo:</strong> Tarifas calculadas dinamicamente sem abusos.</span>
+                                </li>
+                                <li>
+                                    <ion-icon name="checkmark-circle"></ion-icon>
+                                    <span><strong>Compartilhamento de rota:</strong> Envie sua viagem em tempo real para quem você ama.</span>
+                                </li>
+                                <li>
+                                    <ion-icon name="checkmark-circle"></ion-icon>
+                                    <span><strong>Botão SOS:</strong> Central de ajuda rápida ativa durante toda a corrida.</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="tab-visual">
+                            <div class="glass-card">
+                                <ion-icon name="people-outline" class="large-icon"></ion-icon>
+                                <h4>Mais de 50 mil viagens realizadas com segurança esta semana.</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-motorista" class="tab-content">
+                    <div class="tab-grid">
+                        <div class="tab-text">
+                            <h2>Seja dono do seu tempo e fature mais</h2>
+                            <ul class="benefit-list">
+                                <li>
+                                    <ion-icon name="checkmark-circle"></ion-icon>
+                                    <span><strong>Menor taxa do mercado:</strong> Fique com a maior parte do valor da corrida.</span>
+                                </li>
+                                <li>
+                                    <ion-icon name="checkmark-circle"></ion-icon>
+                                    <span><strong>Recebimento via PIX:</strong> Dinheiro na sua conta na hora, sem esperar dias.</span>
+                                </li>
+                                <li>
+                                    <ion-icon name="checkmark-circle"></ion-icon>
+                                    <span><strong>Suporte humanizado:</strong> Central de atendimento exclusiva para o parceiro.</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="tab-visual">
+                            <div class="glass-card accent">
+                                <ion-icon name="wallet-outline" class="large-icon"></ion-icon>
+                                <h4>Receba seus ganhos instantaneamente via PIX direto na sua conta.</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CALCULADORA DE GANHOS -->
+    <section id="estimativa" class="calculator-section">
+        <div class="container">
+            <div class="calculator-card">
+                <div class="calc-header">
+                    <h2>Simule seus ganhos como <span class="text-gradient">Motorista Uppi</span></h2>
+                    <p>Selecione quantas horas você quer dirigir por dia e veja uma estimativa do seu faturamento semanal.</p>
+                </div>
+                
+                <div class="calc-body">
+                    <div class="slider-container">
+                        <label for="hours-slider">Horas estimadas por dia: <span id="hours-display">6h</span></label>
+                        <input type="range" id="hours-slider" min="2" max="12" value="6" class="slider">
+                    </div>
+
+                    <div class="earnings-display">
+                        <small>Estimativa de ganhos semanais*</small>
+                        <span id="earnings-value">R$ 900,00</span>
+                    </div>
+                </div>
+                <div class="calc-footer">
+                    <p>*Estimativa baseada na média de ganhos de nossos motoristas parceiros ativos na categoria carro.</p>
+                    <a href="#" class="btn btn-primary">Cadastrar como Motorista</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEGURANÇA -->
+    <section id="seguranca" class="security-section">
+        <div class="container security-container">
+            <div class="security-visual">
+                <div class="security-shield">
+                    <ion-icon name="shield-half-outline"></ion-icon>
+                </div>
+            </div>
+            <div class="security-content">
+                <span class="badge alert">🛡️ Compromisso de Segurança</span>
+                <h2>Sua integridade é nosso foco absoluto</h2>
+                <p>Nenhum detalhe é deixado de lado quando o assunto é a sua segurança. O Uppi possui ferramentas nativas de proteção integradas tanto para o passageiro quanto para o motorista.</p>
+                <div class="security-features">
+                    <div class="s-feature">
+                        <ion-icon name="call-outline"></ion-icon>
+                        <div>
+                            <h4>Botão de Pânico (SOS)</h4>
+                            <p>Conexão direta com as autoridades e contatos de emergência em um clique.</p>
+                        </div>
+                    </div>
+                    <div class="s-feature">
+                        <ion-icon name="location-outline"></ion-icon>
+                        <div>
+                            <h4>Monitoramento por GPS</h4>
+                            <p>Todas as viagens são gravadas e monitoradas por nossa equipe em tempo real.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container footer-container">
+            <div class="footer-brand">
+                <a href="#" class="logo"><span class="logo-accent">U</span>ppi</a>
+                <p>O super aplicativo de mobilidade urbana feito sob medida para o Brasil.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="privacidade.html">Política de Privacidade</a></li>
+                    <li><a href="termos.html">Termos de Uso</a></li>
+                    <li><a href="excluir_conta.html">Excluir Minha Conta</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Contato</h4>
+                <ul>
+                    <li><a href="mailto:suporte@uppi.com.br">suporte@uppi.com.br</a></li>
+                    <li><a href="admin/">Painel Administrativo</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <p>&copy; 2026 Uppi Mobilidade Urbana. Todos os direitos reservados. CNPJ: 00.000.000/0001-00</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "dart-code.flutter",
+    "denoland.vscode-deno",
+    "melos.melos",
+    "bierner.markdown-preview-github-styles"
+  ]
+}

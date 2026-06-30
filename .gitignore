@@ -1,0 +1,88 @@
+# ===== UPPI .gitignore =====
+
+# ─── Chaves e credenciais (SENSÍVEL) ───
+key.properties
+*.jks
+*.keystore
+*firebase-adminsdk*
+serviceAccountKey.json
+service-account.json
+play-store-credentials.json
+*play-store-credentials.json
+
+# ─── Binários de release ───
+*.aab
+*.apk
+*.ipa
+
+# ─── Firebase ───
+firebase-debug.log
+firebase-debug.*.log
+.firebase/
+
+# ─── Node.js ───
+node_modules/
+
+# ─── Flutter ───
+.dart_tool/
+build/
+*.iml
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.metadata
+**/ephemeral/
+.fvm/
+
+# ─── Android ───
+**/android/.gradle/
+**/android/local.properties
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+
+# ─── IDE ───
+.idea/
+*.swp
+*.swo
+*.code-workspace
+
+# ─── OS ───
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Arquivos de ambiente (SENSÍVEL) ───
+.env
+.env.*
+!.env.example
+!.env.staging
+
+# ─── Logs de build ───
+build_output.log
+build_log.txt
+untranslated_messages.txt
+*.log
+flutter_*.log
+
+# ─── Supabase temp ───
+supabase/.temp/
+
+# ─── Pastas temporárias de cache ───
+Temp/
+**/Temp/
+**/node-compile-cache/
+
+# ─── Backup dumps (não versionar) ───
+backup_dados.sql
+*.dump
+
+# ─── Scripts temporários de debug ───
+tools/scratch/
+
+# ─── Gemini/AI cache ───
+.gemini/
+.claude/
+.antigravitycli/
+.cursor/
+.cursorrules

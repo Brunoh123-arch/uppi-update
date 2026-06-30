@@ -1,0 +1,40 @@
+name: uppi_workspace
+
+packages:
+  - apps/*
+  - libs/*
+
+command:
+  bootstrap:
+    usePubspecOverrides: true
+
+scripts:
+  analyze:
+    run: flutter analyze .
+    exec:
+      concurrency: 1
+    description: Run `flutter analyze` in all packages.
+  
+  format:
+    run: dart format .
+    exec:
+      concurrency: 1
+    description: Run `dart format` in all packages.
+
+  build:runner:
+    run: dart run build_runner build --delete-conflicting-outputs
+    exec:
+      dependsOn: "build_runner"
+    description: Generate code for freezed and injectable in all packages.
+
+  test:
+    # Item 45: Corrigido falso positivo de testes no CI.
+    # failFast: true garante que uma falha real quebre o pipeline imediatamente.
+    # --no-pub evita download de dependências redundante (já foi feito no bootstrap).
+    run: flutter test --no-pub --coverage
+    exec:
+      concurrency: 1
+      failFast: true
+      excludePackages:
+        - generic_map
+    description: Run `flutter test` (com cobertura) em todos os pacotes com diretório de testes.

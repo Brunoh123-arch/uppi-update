@@ -1,0 +1,25 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Compila e envia a versão de homologação/produção para o Apple TestFlight"
+  lane :beta do
+    # 1. Incrementa o build number automaticamente
+    increment_build_number(xcodeproj: "Runner.xcodeproj")
+
+    # 2. Executa a compilação do arquivo IPA ofuscado do Flutter
+    # Certifique-se de configurar os certificados de assinatura no Mac antes de rodar.
+    gym(
+      scheme: "Runner",
+      workspace: "Runner.xcworkspace",
+      include_bitcode: false,
+      export_method: "app-store",
+      output_directory: "../build",
+      output_name: "Uppi.ipa"
+    )
+
+    # 3. Envia o binário IPA para o TestFlight no App Store Connect
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true
+    )
+  end
+end

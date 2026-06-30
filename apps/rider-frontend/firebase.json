@@ -1,0 +1,38 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "uppibrazil",
+          "appId": "1:408478040204:android:c6a585eb17846549257ba9",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "uppibrazil",
+          "appId": "1:608383541640:ios:3182a64d2f05c46d7a9a3d",
+          "uploadDebugSymbols": true,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "uppibrazil",
+          "configurations": {
+            "android": "1:408478040204:android:c6a585eb17846549257ba9",
+            "web": "1:608383541640:web:f50aab914ccb916c7a9a3d"
+          }
+        }
+      }
+    }
+  },
+  "auth": {
+    "providers": {
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Uppi",
+        "supportEmail": "suporte@uppi.com.br"
+      }
+    }
+  }
+}

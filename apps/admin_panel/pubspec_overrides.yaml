@@ -1,0 +1,6 @@
+# melos_managed_dependency_overrides: flutter_common,generic_map
+dependency_overrides:
+  flutter_common:
+    path: ..\\..\\libs\\flutter_common
+  generic_map:
+    path: ..\\..\\libs\\generic_map

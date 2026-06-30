@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Passenger Notifications -->
+  <string name="notification_arrived_title">O Motorista Chegou!</string>
+  <string name="notification_arrived_body">Seu motorista chegou ao local de embarque.</string>
+  <string name="notification_started_title">Corrida Iniciada</string>
+  <string name="notification_started_body">Sua viagem começou. Boa corrida!</string>
+  <string name="notification_waiting_for_pay_title">Aguardando Pagamento</string>
+  <string name="notification_waiting_for_pay_body">A viagem foi concluída. Por favor, realize o pagamento.</string>
+  <string name="notification_finished_title">Viagem Concluída</string>
+  <string name="notification_finished_body">Sua viagem foi concluída. O pagamento foi processado com sucesso.</string>
+  <string name="notification_new_message_title">Nova Mensagem</string>
+  <string name="notification_cancel_title">Corrida Cancelada</string>
+  <string name="notification_cancel_body">Sua viagem foi cancelada. Você pode solicitar uma nova corrida quando quiser.</string>
+  <string name="notification_found_title">Motorista a Caminho!</string>
+  <string name="notification_found_body">Seu motorista está a caminho do local de embarque.</string>
+  <string name="notification_booking_assigned_title">Corrida Agendada Confirmada!</string>
+  <string name="notification_booking_assigned_body">Sua corrida para %1$s foi confirmada e um motorista foi atribuído a você.</string>
+  
+  <!-- Driver Notifications -->
+  <string name="notification_new_request_title">Nova Solicitação</string>
+  <string name="notification_new_request_body">Uma nova solicitação de corrida está disponível.</string>
+  <string name="notification_paid_title">Pagamento Recebido!</string>
+  <string name="notification_paid_body">O pagamento da corrida foi concluído com sucesso.</string>
+  <string name="notification_assigned_title">Corrida Atribuída</string>
+  <string name="notification_assigned_body">Você foi atribuído a uma corrida agendada para %1$s. De: %2$s -> Para: %3$s</string>
+  <string name="notification_upcoming_ride_title">Corrida se Aproximando</string>
+  <string name="notification_upcoming_ride_body">Você tem uma corrida agendada para iniciar em menos de 10 minutos.</string>
+
+
+</resources>

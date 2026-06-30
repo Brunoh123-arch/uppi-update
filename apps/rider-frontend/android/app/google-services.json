@@ -1,0 +1,142 @@
+{
+  "project_info": {
+    "project_number": "408478040204",
+    "project_id": "uppibrazil",
+    "storage_bucket": "uppibrazil.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:408478040204:android:22a575f26cc06ec4257ba9",
+        "android_client_info": {
+          "package_name": "online.uppi.motorista"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "408478040204-e4pjvnat4thh1uh911ga8420v1n3r2u8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "online.uppi.motorista",
+            "certificate_hash": "44c8ba23a8a5f88b7478ca6576fc048d5766942d"
+          }
+        },
+        {
+          "client_id": "408478040204-2goc9kfqm9sadcci2ue5gkculo21tiif.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_xeD9iE3tm9nxoA6R4nWmIb2ANucrlHI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "408478040204-2goc9kfqm9sadcci2ue5gkculo21tiif.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "408478040204-dct9iitq769k6l01ghd9h433q599r4le.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "online.uppi.motorista"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:408478040204:android:c6a585eb17846549257ba9",
+        "android_client_info": {
+          "package_name": "online.uppi.rider"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "408478040204-bsir7i0vpkohj4a2ebcg66ec5sfb9b3j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "online.uppi.rider",
+            "certificate_hash": "44c8ba23a8a5f88b7478ca6576fc048d5766942d"
+          }
+        },
+        {
+          "client_id": "408478040204-u9gbkip0mo9magppaed8m06b4j0fm25t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "online.uppi.rider",
+            "certificate_hash": "98b6c56e05301a7a0b9c4d41718c02b645797236"
+          }
+        },
+        {
+          "client_id": "408478040204-2goc9kfqm9sadcci2ue5gkculo21tiif.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_xeD9iE3tm9nxoA6R4nWmIb2ANucrlHI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "408478040204-2goc9kfqm9sadcci2ue5gkculo21tiif.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "408478040204-dct9iitq769k6l01ghd9h433q599r4le.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "online.uppi.motorista"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:408478040204:android:617080506c8aecc5257ba9",
+        "android_client_info": {
+          "package_name": "uppibrazil.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "408478040204-2goc9kfqm9sadcci2ue5gkculo21tiif.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_xeD9iE3tm9nxoA6R4nWmIb2ANucrlHI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "408478040204-2goc9kfqm9sadcci2ue5gkculo21tiif.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "408478040204-dct9iitq769k6l01ghd9h433q599r4le.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "online.uppi.motorista"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

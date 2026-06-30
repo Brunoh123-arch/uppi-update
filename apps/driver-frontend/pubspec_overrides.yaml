@@ -1,0 +1,15 @@
+# melos_managed_dependency_overrides: flutter_common,generic_map,analyzer,test_api,dart_style,build_resolvers,build_runner,freezed,flutter_gen_core,flutter_gen_runner,flutter_gen
+dependency_overrides:
+  flutter_common:
+    path: ..\\..\\libs\\flutter_common
+  generic_map:
+    path: ..\\..\\libs\\generic_map
+  analyzer: 6.4.1
+  test_api: any
+  dart_style: 2.3.6
+  build_resolvers: 2.4.2
+  build_runner: 2.4.13
+  freezed: 2.4.5
+  flutter_gen_core: 5.8.0
+  flutter_gen_runner: 5.8.0
+  flutter_gen: 5.8.0

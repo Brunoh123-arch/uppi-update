@@ -1,0 +1,77 @@
+-- Inserir lista abrangente de modelos de veículos populares (Carros, Motos e Elétricos) no Brasil
+INSERT INTO public.car_models (name)
+SELECT val.name FROM (
+  VALUES 
+  -- Carros Populares e de Aplicativo
+  ('Fiat Mobi'),
+  ('Renault Kwid'),
+  ('Chevrolet Onix'),
+  ('Hyundai HB20'),
+  ('Volkswagen Polo'),
+  ('Fiat Argo'),
+  ('Chevrolet Onix Plus'),
+  ('Fiat Cronos'),
+  ('Hyundai HB20S'),
+  ('Toyota Yaris'),
+  ('Toyota Yaris Sedan'),
+  ('Honda City'),
+  ('Honda City Hatchback'),
+  ('Nissan Versa'),
+  ('Chevrolet Spin'),
+  -- SUVs Populares
+  ('Volkswagen T-Cross'),
+  ('Chevrolet Tracker'),
+  ('Hyundai Creta'),
+  ('Jeep Renegade'),
+  ('Nissan Kicks'),
+  ('Fiat Pulse'),
+  ('Fiat Fastback'),
+  ('Volkswagen Nivus'),
+  ('Renault Duster'),
+  ('Honda HR-V'),
+  ('Jeep Compass'),
+  ('Toyota Corolla Cross'),
+  -- Carros Sedãs e Premium
+  ('Toyota Corolla'),
+  ('Honda Civic'),
+  ('Nissan Sentra'),
+  ('Volkswagen Jetta'),
+  ('Chevrolet Cruze'),
+  -- Motos Populares e de Aplicativo
+  ('Honda CG 160 Fan'),
+  ('Honda CG 160 Titan'),
+  ('Honda CG 160 Start'),
+  ('Honda Biz 125'),
+  ('Honda Biz 110i'),
+  ('Honda NXR 160 Bros'),
+  ('Honda Pop 110i'),
+  ('Honda PCX 160'),
+  ('Honda XRE 190'),
+  ('Honda XRE 300'),
+  ('Honda CB 300F Twister'),
+  ('Yamaha YBR 150 Factor'),
+  ('Yamaha Fazer FZ15'),
+  ('Yamaha Fazer FZ25'),
+  ('Yamaha Crosser 150'),
+  ('Yamaha Lander 250'),
+  ('Yamaha NMAX 160'),
+  ('Yamaha Fluo 125'),
+  -- Veículos Elétricos e Híbridos
+  ('BYD Dolphin'),
+  ('BYD Dolphin Mini'),
+  ('BYD Song Plus (Híbrido)'),
+  ('BYD King (Híbrido)'),
+  ('BYD Seal'),
+  ('BYD Yuan Plus'),
+  ('GWM Ora 03'),
+  ('GWM Haval H6 (Híbrido)'),
+  ('Toyota Corolla (Híbrido)'),
+  ('Toyota Corolla Cross (Híbrido)'),
+  ('Renault Kwid E-Tech'),
+  ('JAC E-JS1'),
+  ('Volvo XC40 Recharge'),
+  ('Nissan Leaf')
+) as val(name)
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.car_models WHERE public.car_models.name = val.name
+);

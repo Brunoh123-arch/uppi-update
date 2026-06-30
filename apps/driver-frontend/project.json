@@ -1,0 +1,142 @@
+{
+  "name": "driver-frontend",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/driver-frontend/src",
+  "projectType": "application",
+  "targets": {
+    "analyze": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fvm flutter analyze",
+        "cwd": "apps/driver-frontend"
+      }
+    },
+    "clean": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fvm flutter clean",
+        "cwd": "apps/driver-frontend"
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fvm flutter format apps/driver-frontend/*",
+        "cwd": "apps/driver-frontend"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fvm flutter test",
+        "cwd": "apps/driver-frontend"
+      }
+    },
+    "doctor": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fvm flutter doctor",
+        "cwd": "apps/driver-frontend"
+      }
+    },
+    "assemble": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fvm flutter assemble",
+        "cwd": "apps/driver-frontend"
+      }
+    },
+    "attach": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fvm flutter attach",
+        "cwd": "apps/driver-frontend"
+      }
+    },
+    "drive": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fvm flutter drive",
+        "cwd": "apps/driver-frontend"
+      }
+    },
+    "gen-l10n": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fvm flutter gen-l10n",
+        "cwd": "apps/driver-frontend"
+      }
+    },
+    "install": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fvm flutter install",
+        "cwd": "apps/driver-frontend"
+      }
+    },
+    "run": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fvm flutter run",
+        "cwd": "apps/driver-frontend"
+      }
+    },
+    "build-aar": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fvm flutter build aar",
+        "cwd": "apps/driver-frontend"
+      },
+      "outputs": ["{workspaceRoot}/apps/driver-frontend/build"]
+    },
+    "build-apk": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fvm flutter build apk",
+        "cwd": "apps/driver-frontend"
+      },
+      "outputs": ["{workspaceRoot}/apps/driver-frontend/build"]
+    },
+    "build-appbundle": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fvm flutter build appbundle",
+        "cwd": "apps/driver-frontend"
+      },
+      "outputs": ["{workspaceRoot}/apps/driver-frontend/build"]
+    },
+    "build-bundle": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fvm flutter build bundle",
+        "cwd": "apps/driver-frontend"
+      },
+      "outputs": ["{workspaceRoot}/apps/driver-frontend/build"]
+    },
+    "build-ios": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fvm flutter build ios",
+        "cwd": "apps/driver-frontend"
+      },
+      "outputs": ["{workspaceRoot}/apps/driver-frontend/build"]
+    },
+    "build-ios-framework": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fvm flutter build ios-framework",
+        "cwd": "apps/driver-frontend"
+      },
+      "outputs": ["{workspaceRoot}/apps/driver-frontend/build"]
+    },
+    "build-ipa": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fvm flutter build ipa",
+        "cwd": "apps/driver-frontend"
+      },
+      "outputs": ["{workspaceRoot}/apps/driver-frontend/build"]
+    }
+  },
+  "tags": []
+}

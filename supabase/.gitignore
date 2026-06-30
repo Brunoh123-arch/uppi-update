@@ -1,0 +1,12 @@
+# Supabase
+.branches
+.temp
+Temp/
+
+# Secrets (NUNCA commitar!)
+.env
+
+# dotenvx
+.env.keys
+.env.local
+.env.*.local

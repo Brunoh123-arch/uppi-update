@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excluir Conta — Uppi</title>
+    <meta name="description" content="Solicite a exclusão da sua conta Uppi e todos os dados associados.">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            line-height: 1.7;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .hero {
+            background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+            padding: 60px 24px 40px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        .hero p {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.95rem;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+            flex: 1;
+        }
+        h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fc8181;
+            margin: 28px 0 12px;
+        }
+        p, li {
+            font-size: 0.95rem;
+            color: #bbb;
+            margin-bottom: 12px;
+        }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 6px; }
+        .warning-box {
+            background: rgba(229, 62, 62, 0.1);
+            border: 1px solid rgba(229, 62, 62, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 24px 0;
+        }
+        .warning-box h3 {
+            color: #fc8181;
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+        .steps {
+            background: #111;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+        .step {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            align-items: flex-start;
+        }
+        .step:last-child { margin-bottom: 0; }
+        .step-num {
+            background: #6C3CE1;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+        .step-text { color: #bbb; font-size: 0.95rem; }
+        .contact-card {
+            background: #111;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin-top: 32px;
+        }
+        .contact-card a {
+            color: #b794f6;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-decoration: none;
+        }
+        .contact-card a:hover { text-decoration: underline; }
+        .contact-card p { color: #888; margin-top: 8px; margin-bottom: 0; }
+        .footer {
+            text-align: center;
+            padding: 32px;
+            color: #666;
+            font-size: 0.8rem;
+            border-top: 1px solid #1a1a1a;
+        }
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #333;
+            color: #888;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.2s;
+        }
+        .lang-btn:hover {
+            border-color: #666;
+            color: #ccc;
+        }
+
+        /* Bilingual support styles (Bug 30) */
+        [lang="en"] { display: none; }
+        body.lang-en [lang="pt"] { display: none; }
+        body.lang-en [lang="en"] { display: block; }
+        body.lang-en span[lang="en"], 
+        body.lang-en strong[lang="en"], 
+        body.lang-en a[lang="en"], 
+        body.lang-en div[lang="en"] { display: inline; }
+        body.lang-en div.step-text[lang="en"] { display: block; }
+        body.lang-en h2[lang="en"] { display: block; }
+        body.lang-en h3[lang="en"] { display: block; }
+        body.lang-en p[lang="en"] { display: block; }
+        body.lang-en li[lang="en"] { display: list-item; }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1 lang="pt">Excluir Minha Conta</h1>
+        <h1 lang="en">Delete My Account</h1>
+        <p lang="pt">Solicitação de exclusão de dados</p>
+        <p lang="en">Data deletion request</p>
+    </div>
+    <div class="container">
+        <p lang="pt">Você pode solicitar a exclusão completa da sua conta Uppi e de todos os dados pessoais associados. Este processo é irreversível.</p>
+        <p lang="en">You can request the complete deletion of your Uppi account and all associated personal data. This process is irreversible.</p>
+
+        <div class="warning-box">
+            <h3 lang="pt">⚠️ O que será excluído:</h3>
+            <h3 lang="en">⚠️ What will be deleted:</h3>
+            <ul lang="pt">
+                <li>Seus dados pessoais (nome, e-mail, telefone, foto)</li>
+                <li>Histórico de corridas</li>
+                <li>Métodos de pagamento salvos</li>
+                <li>Avaliações e feedback</li>
+                <li>Saldo da carteira (realize o saque antes!)</li>
+                <li>Documentos de motorista (se aplicável)</li>
+            </ul>
+            <ul lang="en">
+                <li>Your personal data (name, email, phone, photo)</li>
+                <li>Trip history</li>
+                <li>Saved payment methods</li>
+                <li>Ratings and feedback</li>
+                <li>Wallet balance (withdraw before requesting!)</li>
+                <li>Driver documents (if applicable)</li>
+            </ul>
+        </div>
+
+        <h2 lang="pt">Como excluir pelo aplicativo</h2>
+        <h2 lang="en">How to delete via the App</h2>
+        
+        <div class="steps">
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-text" lang="pt">Abra o app Uppi e vá em <strong>Configurações</strong></div>
+                <div class="step-text" lang="en">Open the Uppi app and go to <strong>Settings</strong></div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-text" lang="pt">Toque em <strong>Conta</strong></div>
+                <div class="step-text" lang="en">Tap on <strong>Account</strong></div>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-text" lang="pt">Toque em <strong>Excluir minha conta</strong></div>
+                <div class="step-text" lang="en">Tap on <strong>Delete my account</strong></div>
+            </div>
+            <div class="step">
+                <div class="step-num">4</div>
+                <!-- Bug 23 Fix: Removido o prazo de 30 dias, pois a deleção é imediata nos termos da LGPD -->
+                <div class="step-text" lang="pt">Confirme a exclusão. Sua conta será desativada e seus dados pessoais serão removidos <strong>imediatamente</strong>.</div>
+                <div class="step-text" lang="en">Confirm the deletion. Your account will be deactivated and your personal data will be removed <strong>immediately</strong>.</div>
+            </div>
+        </div>
+
+        <h2 lang="pt">Solicitar por e-mail</h2>
+        <h2 lang="en">Request by Email</h2>
+        <p lang="pt">Se não conseguir acessar o app, envie um e-mail para o endereço abaixo com o assunto "Excluir conta" e o e-mail/telefone cadastrado:</p>
+        <p lang="en">If you cannot access the app, send an email to the address below with the subject "Delete account" and your registered email/phone number:</p>
+
+        <div class="contact-card">
+            <a href="mailto:suporte@uppi.com.br?subject=Excluir%20conta">suporte@uppi.com.br</a>
+            <p lang="pt">Responderemos em até 5 dias úteis</p>
+            <p lang="en">We will respond within 5 business days</p>
+        </div>
+
+        <h2 lang="pt">Prazo de Retenção</h2>
+        <h2 lang="en">Retention Period</h2>
+        <!-- Bug 23 Fix: Alinhado com comportamento real de soft-delete imediato -->
+        <p lang="pt">Após a solicitação, os dados de identificação pessoal serão imediatamente apagados ou anonimizados de nossos servidores ativos. Alguns dados específicos podem ser mantidos sob guarda segura para cumprimento de obrigações fiscais e legais vigentes no Brasil.</p>
+        <p lang="en">Upon request, personal identification data will be immediately removed or anonymized from our active servers. Specific data may be kept securely to comply with fiscal and legal obligations in Brazil.</p>
+    </div>
+    <div class="footer">
+        &copy; 2026 Uppi Brasil. All rights reserved. |
+        <a href="/privacidade" style="color:#666;" lang="pt">Privacidade</a>
+        <a href="/privacidade" style="color:#666;" lang="en">Privacy</a> |
+        <a href="/termos" style="color:#666;" lang="pt">Termos</a>
+        <a href="/termos" style="color:#666;" lang="en">Terms</a>
+        <br>
+        <button class="lang-btn" id="langBtn">Translate to English</button>
+    </div>
+
+    <script>
+        const btn = document.getElementById('langBtn');
+        function setLanguage(lang) {
+            if (lang === 'en') {
+                document.body.classList.add('lang-en');
+                btn.textContent = 'Mudar para Português';
+            } else {
+                document.body.classList.remove('lang-en');
+                btn.textContent = 'Translate to English';
+            }
+        }
+
+        // Auto detect browser language (Bug 30)
+        const userLang = navigator.language || navigator.userLanguage;
+        if (userLang && userLang.startsWith('en')) {
+            setLanguage('en');
+        }
+
+        btn.addEventListener('click', () => {
+            if (document.body.classList.contains('lang-en')) {
+                setLanguage('pt');
+            } else {
+                setLanguage('en');
+            }
+        });
+    </script>
+</body>
+</html>

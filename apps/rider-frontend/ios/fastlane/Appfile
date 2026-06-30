@@ -1,0 +1,5 @@
+app_identifier("online.uppi.rider") # The bundle identifier of your app
+apple_id("dev@uppi.online") # Your Apple Developer Portal username
+
+# itc_team_id("12345678")         # ID do Time no App Store Connect (opcional)
+# team_id("ABCDE12345")           # ID do Time no Apple Developer Portal (opcional)

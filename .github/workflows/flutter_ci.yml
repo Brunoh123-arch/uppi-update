@@ -1,0 +1,165 @@
+name: Uppi CI/CD
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  edge_functions:
+    name: Edge Functions (Deno)
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Deno
+      uses: denoland/setup-deno@v2
+      with:
+        deno-version: v2.x
+
+    - name: Type-check do núcleo de precificação
+      run: deno check supabase/functions/_shared/pricing.ts
+
+    - name: Test (regras de negócio puras)
+      run: deno test supabase/functions/_shared/
+
+  build_and_test:
+    name: Build, Analyze & Deploy
+    needs: edge_functions
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Java (For Android Build)
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+        
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+        flutter-version: '3.27.0'
+        cache: true
+
+    - name: Cache Pub Packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.pub-cache
+          **/tool/
+        key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pub-
+          
+    - name: Install Melos
+      run: dart pub global activate melos
+
+    - name: Bootstrap Dependencies (Melos)
+      run: melos bootstrap
+
+    # Gate de formatação REAL: reprova o build se houver código fora do padrão.
+    # Arquivos gerados (build_runner/freezed/auto_route/flutter_gen/l10n) são
+    # ignorados pois não são editados à mão.
+    - name: Check formatting
+      run: |
+        files=$(find apps libs -name '*.dart' \
+          ! -name '*.g.dart' ! -name '*.freezed.dart' \
+          ! -name '*.gr.dart' ! -name '*.config.dart' ! -name '*.gen.dart' \
+          ! -path '*/l10n/*' ! -path '*/.dart_tool/*' ! -path '*/build/*')
+        if [ -n "$files" ]; then
+          dart format --output=none --set-exit-if-changed $files
+        fi
+
+    - name: Analyze
+      run: melos run analyze
+
+    - name: Run Tests
+      run: melos run test
+
+    - name: Upload coverage (lcov)
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-lcov
+        path: '**/coverage/lcov.info'
+        if-no-files-found: ignore
+
+    - name: Create Temporary Keystore for CI Build (Item 39 Bypass)
+      run: |
+        mkdir -p apps/rider-frontend/android/app
+        keytool -genkey -v -keystore apps/rider-frontend/android/app/upload.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000 -storepass testpassword -keypass testpassword -dname "CN=Uppi CI, O=Uppi, L=Sao Paulo, S=SP, C=BR"
+        echo "storePassword=testpassword" > apps/rider-frontend/android/key.properties
+        echo "keyPassword=testpassword" >> apps/rider-frontend/android/key.properties
+        echo "keyAlias=upload" >> apps/rider-frontend/android/key.properties
+        echo "storeFile=upload.jks" >> apps/rider-frontend/android/key.properties
+
+    - name: Create .env files
+      run: |
+        cp apps/rider-frontend/.env.example apps/rider-frontend/.env
+        echo "SUPABASE_URL=${{ secrets.SUPABASE_URL || 'https://kqfmahrxjuqlvxngeurj.supabase.co' }}" > apps/admin_panel/.env
+        echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZm1haHJ4anVxbHZ4bmdldXJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNDY2MTcsImV4cCI6MjA5MzgyMjYxN30.hQUfMD0TJIG-RE5SAlKaXBiR4HQQrH2JQZyQx4mASvs' }}" >> apps/admin_panel/.env
+
+    - name: Build Rider App (AAB Release)
+      working-directory: apps/rider-frontend
+      run: flutter build appbundle --release --obfuscate --split-debug-info=build/debug-info --dart-define-from-file=.env
+
+    - name: Upload to Google Play (Internal Testing via Fastlane)
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.PLAY_STORE_CREDENTIALS_JSON != ''
+      working-directory: apps/rider-frontend/android
+      run: |
+        echo '${{ secrets.PLAY_STORE_CREDENTIALS_JSON }}' > play-store-credentials.json
+        sudo gem install fastlane -N
+        fastlane deploy_only
+
+    - name: Build Admin Panel (Web Release)
+      working-directory: apps/admin_panel
+      run: flutter build web --release
+
+    - name: Deploy Admin Panel to Firebase Hosting (Item 43)
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: FirebaseExtended/action-hosting-deploy@v0
+      with:
+        repoToken: '${{ secrets.GITHUB_TOKEN }}'
+        firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_UPPI }}'
+        expires: 30d
+        projectId: uppibrazil
+        entryPoint: apps/admin_panel
+
+  build_ios:
+    name: Build iOS (IPA compile verification)
+    needs: edge_functions
+    runs-on: macos-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+        flutter-version: '3.27.0'
+        cache: true
+
+    - name: Install Melos
+      run: dart pub global activate melos
+
+    - name: Bootstrap Dependencies (Melos)
+      run: melos bootstrap
+
+    - name: Create stub .env for iOS Build
+      run: cp apps/rider-frontend/.env.example apps/rider-frontend/.env
+
+    - name: Build Rider App (iOS IPA)
+      working-directory: apps/rider-frontend
+      run: flutter build ipa --no-codesign --obfuscate --split-debug-info=build/debug-info-ios --dart-define-from-file=.env
+

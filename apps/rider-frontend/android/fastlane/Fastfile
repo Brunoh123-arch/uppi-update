@@ -1,0 +1,23 @@
+default_platform(:android)
+
+platform :android do
+  desc "Build AAB and deploy to Google Play Store internal track"
+  lane :beta do
+    # Run the Flutter build command from root of the app
+    sh("cd ../.. && flutter build appbundle --release")
+    
+    # Upload to Google Play Console
+    upload_to_play_store(
+      track: 'internal',
+      aab: '../build/app/outputs/bundle/release/app-release.aab'
+    )
+  end
+
+  desc "Deploy pre-built AAB to Google Play Store internal track"
+  lane :deploy_only do
+    upload_to_play_store(
+      track: 'internal',
+      aab: '../build/app/outputs/bundle/release/app-release.aab'
+    )
+  end
+end

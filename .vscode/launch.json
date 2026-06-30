@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Rider App (Mobile)",
+      "request": "launch",
+      "type": "dart",
+      "program": "apps/rider-frontend/lib/main.dart",
+      "cwd": "apps/rider-frontend"
+    },
+    {
+      "name": "Admin Panel (Web)",
+      "request": "launch",
+      "type": "dart",
+      "program": "apps/admin_panel/lib/main.dart",
+      "cwd": "apps/admin_panel",
+      "args": [
+        "-d",
+        "chrome",
+        "--web-port",
+        "4000"
+      ]
+    }
+  ]
+}
