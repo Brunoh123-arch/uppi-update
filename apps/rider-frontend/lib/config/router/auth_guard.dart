@@ -8,9 +8,15 @@ import 'package:rider_flutter/core/entities/profile.dart';
 class AuthGuard extends AutoRouteGuard {
   @override
   void onNavigation(NavigationResolver resolver, StackRouter router) {
+    final authBloc = locator<AuthBloc>();
+    final authState = authBloc.state;
+    final isGuest = authState.map(
+      authenticated: (_) => false,
+      unauthenticated: (unauth) => unauth.isGuest,
+    );
+
     if (kDebugMode) {
-      final authBloc = locator<AuthBloc>();
-      if (!authBloc.state.isAuthenticated) {
+      if (!authState.isAuthenticated && !isGuest) {
         authBloc.onLoggedIn(
           jwtToken: 'dev-bypass-user-id',
           profile: ProfileEntity.emptyProfile.copyWith(
@@ -25,9 +31,9 @@ class AuthGuard extends AutoRouteGuard {
       return;
     }
 
-    final isAuthenticated = locator<AuthBloc>().state.isAuthenticated;
-    if (isAuthenticated) {
-      // User is logged in, allow navigation
+    final isAllowed = authState.isAuthenticated || isGuest;
+    if (isAllowed) {
+      // User is logged in or is guest, allow navigation
       resolver.next(true);
     } else {
       // User is not logged in, redirect to the Auth screen

@@ -196,6 +196,10 @@ class AuthBloc extends HydratedCubit<AuthState> {
     );
   }
 
+  void skipLogin() {
+    emit(const AuthState.unauthenticated(isGuest: true));
+  }
+
   void onLoggedOut() async {
     try {
       // UPPI BRASIL: Desassocia o token FCM no backend para evitar vazamento de notificações push pós-logout
@@ -206,7 +210,7 @@ class AuthBloc extends HydratedCubit<AuthState> {
     } catch (_) {}
     await Supabase.instance.client.auth.signOut();
     sessionRestored = Completer<bool>();
-    emit(const AuthState.unauthenticated());
+    emit(const AuthState.unauthenticated(isGuest: false));
   }
 
   Future<void> _updatePushToken() async {

@@ -18,7 +18,6 @@ import 'package:rider_flutter/core/blocs/auth_bloc.dart' as _i714;
 import 'package:rider_flutter/core/blocs/location.dart' as _i122;
 import 'package:rider_flutter/core/blocs/place_lookup.dart' as _i412;
 import 'package:rider_flutter/core/blocs/route.dart' as _i543;
-import 'package:flutter_common/core/blocs/settings.dart' as _i401;
 import 'package:rider_flutter/core/datasources/firebase_datasource.dart'
     as _i567;
 import 'package:rider_flutter/core/datasources/geo_datasource.dart' as _i672;
@@ -178,7 +177,6 @@ extension GetItInjectableX on _i174.GetIt {
     final serviceModule = _$ServiceModule();
     gh.singleton<_i547.AppRouter>(() => _i547.AppRouter());
     gh.singleton<_i884.AppModeCubit>(() => _i884.AppModeCubit());
-    gh.singleton<_i401.SettingsCubit>(() => _i401.SettingsCubit());
     gh.singleton<_i141.OnboardingCubit>(() => _i141.OnboardingCubit());
     gh.lazySingleton<_i895.Connectivity>(() => serviceModule.connectivity);
     gh.lazySingleton<_i454.SupabaseClient>(() => serviceModule.supabaseClient);

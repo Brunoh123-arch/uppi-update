@@ -101,10 +101,15 @@ class _SplashScreenState extends State<SplashScreen> {
     if (appMode == AppMode.rider) {
       final authBloc = locator<rider_auth.AuthBloc>();
       final isDone = locator<OnboardingCubit>().isDone;
-      final isAuthenticated = authBloc.state.isAuthenticated;
-      debugPrint("UPPI BRASIL [SplashScreen] Rider: isDone=$isDone, isAuthenticated=$isAuthenticated");
+      final authState = authBloc.state;
+      final isGuest = authState.map(
+        authenticated: (_) => false,
+        unauthenticated: (unauth) => unauth.isGuest,
+      );
+      final isAllowed = authState.isAuthenticated || isGuest;
+      debugPrint("UPPI BRASIL [SplashScreen] Rider: isDone=$isDone, isAuthenticated=${authState.isAuthenticated}, isGuest=$isGuest");
       if (isDone) {
-        if (isAuthenticated) {
+        if (isAllowed) {
           debugPrint("UPPI BRASIL [SplashScreen] Direcionando Rider para NavigationRoute");
           context.router.replace(const NavigationRoute());
         } else {

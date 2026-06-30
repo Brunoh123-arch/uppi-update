@@ -33,19 +33,19 @@ mixin _$AuthState {
   TResult when<TResult extends Object?>({
     required TResult Function(String jwtToken, ProfileEntity profile)
         authenticated,
-    required TResult Function() unauthenticated,
+    required TResult Function(bool isGuest) unauthenticated,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String jwtToken, ProfileEntity profile)? authenticated,
-    TResult? Function()? unauthenticated,
+    TResult? Function(bool isGuest)? unauthenticated,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String jwtToken, ProfileEntity profile)? authenticated,
-    TResult Function()? unauthenticated,
+    TResult Function(bool isGuest)? unauthenticated,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -193,7 +193,7 @@ class _$AuthenticatedImpl
   TResult when<TResult extends Object?>({
     required TResult Function(String jwtToken, ProfileEntity profile)
         authenticated,
-    required TResult Function() unauthenticated,
+    required TResult Function(bool isGuest) unauthenticated,
   }) {
     return authenticated(jwtToken, profile);
   }
@@ -202,7 +202,7 @@ class _$AuthenticatedImpl
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String jwtToken, ProfileEntity profile)? authenticated,
-    TResult? Function()? unauthenticated,
+    TResult? Function(bool isGuest)? unauthenticated,
   }) {
     return authenticated?.call(jwtToken, profile);
   }
@@ -211,7 +211,7 @@ class _$AuthenticatedImpl
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String jwtToken, ProfileEntity profile)? authenticated,
-    TResult Function()? unauthenticated,
+    TResult Function(bool isGuest)? unauthenticated,
     required TResult orElse(),
   }) {
     if (authenticated != null) {
@@ -279,6 +279,8 @@ abstract class _$$UnauthenticatedImplCopyWith<$Res> {
   factory _$$UnauthenticatedImplCopyWith(_$UnauthenticatedImpl value,
           $Res Function(_$UnauthenticatedImpl) then) =
       __$$UnauthenticatedImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({bool isGuest});
 }
 
 /// @nodoc
@@ -288,6 +290,19 @@ class __$$UnauthenticatedImplCopyWithImpl<$Res>
   __$$UnauthenticatedImplCopyWithImpl(
       _$UnauthenticatedImpl _value, $Res Function(_$UnauthenticatedImpl) _then)
       : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? isGuest = null,
+  }) {
+    return _then(_$UnauthenticatedImpl(
+      isGuest: null == isGuest
+          ? _value.isGuest
+          : isGuest // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
 }
 
 /// @nodoc
@@ -295,64 +310,79 @@ class __$$UnauthenticatedImplCopyWithImpl<$Res>
 class _$UnauthenticatedImpl
     with DiagnosticableTreeMixin
     implements _Unauthenticated {
-  const _$UnauthenticatedImpl({final String? $type})
+  const _$UnauthenticatedImpl({this.isGuest = false, final String? $type})
       : $type = $type ?? 'unauthenticated';
 
   factory _$UnauthenticatedImpl.fromJson(Map<String, dynamic> json) =>
       _$$UnauthenticatedImplFromJson(json);
+
+  @override
+  @JsonKey()
+  final bool isGuest;
 
   @JsonKey(name: 'runtimeType')
   final String $type;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'AuthState.unauthenticated()';
+    return 'AuthState.unauthenticated(isGuest: $isGuest)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty('type', 'AuthState.unauthenticated'));
+    properties
+      ..add(DiagnosticsProperty('type', 'AuthState.unauthenticated'))
+      ..add(DiagnosticsProperty('isGuest', isGuest));
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is _$UnauthenticatedImpl);
+        (other.runtimeType == runtimeType &&
+            other is _$UnauthenticatedImpl &&
+            (identical(other.isGuest, isGuest) || other.isGuest == isGuest));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => runtimeType.hashCode;
+  int get hashCode => Object.hash(runtimeType, isGuest);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$UnauthenticatedImplCopyWith<_$UnauthenticatedImpl> get copyWith =>
+      __$$UnauthenticatedImplCopyWithImpl<_$UnauthenticatedImpl>(
+          this, _$identity);
 
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(String jwtToken, ProfileEntity profile)
         authenticated,
-    required TResult Function() unauthenticated,
+    required TResult Function(bool isGuest) unauthenticated,
   }) {
-    return unauthenticated();
+    return unauthenticated(isGuest);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String jwtToken, ProfileEntity profile)? authenticated,
-    TResult? Function()? unauthenticated,
+    TResult? Function(bool isGuest)? unauthenticated,
   }) {
-    return unauthenticated?.call();
+    return unauthenticated?.call(isGuest);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String jwtToken, ProfileEntity profile)? authenticated,
-    TResult Function()? unauthenticated,
+    TResult Function(bool isGuest)? unauthenticated,
     required TResult orElse(),
   }) {
     if (unauthenticated != null) {
-      return unauthenticated();
+      return unauthenticated(isGuest);
     }
     return orElse();
   }
@@ -397,8 +427,13 @@ class _$UnauthenticatedImpl
 }
 
 abstract class _Unauthenticated implements AuthState {
-  const factory _Unauthenticated() = _$UnauthenticatedImpl;
+  const factory _Unauthenticated({final bool isGuest}) = _$UnauthenticatedImpl;
 
   factory _Unauthenticated.fromJson(Map<String, dynamic> json) =
       _$UnauthenticatedImpl.fromJson;
+
+  bool get isGuest;
+  @JsonKey(ignore: true)
+  _$$UnauthenticatedImplCopyWith<_$UnauthenticatedImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }

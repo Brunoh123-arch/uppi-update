@@ -7,7 +7,9 @@ class AuthState with _$AuthState {
     required ProfileEntity profile,
   }) = _Authenticated;
 
-  const factory AuthState.unauthenticated() = _Unauthenticated;
+  const factory AuthState.unauthenticated({
+    @Default(false) bool isGuest,
+  }) = _Unauthenticated;
 
   factory AuthState.fromJson(Map<String, dynamic> json) =>
       _$AuthStateFromJson(json);

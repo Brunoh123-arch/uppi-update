@@ -35,6 +35,9 @@ class AuthScreen extends StatelessWidget {
             }
             state.loginPage.mapOrNull(
               success: (value) {
+                if (state.jwtToken == null) {
+                  locator<AuthBloc>().skipLogin();
+                }
                 locator<LoginBloc>().reset();
                 locator<OnboardingCubit>().skip();
                 context.router.replaceAll(

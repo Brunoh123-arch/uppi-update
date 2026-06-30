@@ -23,11 +23,13 @@ Map<String, dynamic> _$$AuthenticatedImplToJson(_$AuthenticatedImpl instance) =>
 _$UnauthenticatedImpl _$$UnauthenticatedImplFromJson(
         Map<String, dynamic> json) =>
     _$UnauthenticatedImpl(
+      isGuest: json['isGuest'] as bool? ?? false,
       $type: json['runtimeType'] as String?,
     );
 
 Map<String, dynamic> _$$UnauthenticatedImplToJson(
         _$UnauthenticatedImpl instance) =>
     <String, dynamic>{
+      'isGuest': instance.isGuest,
       'runtimeType': instance.$type,
     };
