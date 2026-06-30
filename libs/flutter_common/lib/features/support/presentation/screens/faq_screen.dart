@@ -51,7 +51,7 @@ class SharedFaqScreen extends StatelessWidget {
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: cs.outline.withOpacity(0.15)),
+              side: BorderSide(color: cs.outline.withValues(alpha: 0.15)),
             ),
             child: ExpansionTile(
               title: Text(
@@ -66,7 +66,7 @@ class SharedFaqScreen extends StatelessWidget {
                 Text(
                   faq['answer']!,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: cs.onSurface.withOpacity(0.8),
+                    color: cs.onSurface.withValues(alpha: 0.8),
                   ),
                 ),
               ],

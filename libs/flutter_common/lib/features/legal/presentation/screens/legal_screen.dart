@@ -16,7 +16,7 @@ class SharedLegalScreen extends StatelessWidget {
           centerTitle: true,
           bottom: TabBar(
             labelColor: cs.primary,
-            unselectedLabelColor: cs.onSurface.withOpacity(0.6),
+            unselectedLabelColor: cs.onSurface.withValues(alpha: 0.6),
             indicatorColor: cs.primary,
             indicatorSize: TabBarIndicatorSize.tab,
             tabs: const [
@@ -139,10 +139,10 @@ class _LegalTextContent extends StatelessWidget {
       children: [
         Card(
           elevation: 0,
-          color: cs.primaryContainer.withOpacity(0.15),
+          color: cs.primaryContainer.withValues(alpha: 0.15),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: cs.primary.withOpacity(0.1)),
+            side: BorderSide(color: cs.primary.withValues(alpha: 0.1)),
           ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -160,7 +160,7 @@ class _LegalTextContent extends StatelessWidget {
                 Text(
                   lastUpdated,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: cs.onSurface.withOpacity(0.6),
+                    color: cs.onSurface.withValues(alpha: 0.6),
                     fontStyle: FontStyle.italic,
                   ),
                 ),
@@ -206,7 +206,7 @@ class _LegalSection extends StatelessWidget {
           Text(
             content,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: cs.onSurface.withOpacity(0.8),
+              color: cs.onSurface.withValues(alpha: 0.8),
               height: 1.5,
             ),
           ),

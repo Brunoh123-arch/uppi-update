@@ -137,7 +137,7 @@ class _UploadImageFieldState extends State<UploadImageField> {
                   _isLoading ? 'Enviando...' : widget.uploadButtonText,
                   style: context.labelMedium?.copyWith(
                     color: _isLoading 
-                        ? context.theme.colorScheme.onSurfaceVariant.withOpacity(0.5)
+                        ? context.theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
                         : context.theme.colorScheme.onSurfaceVariant,
                   ),
                 ),

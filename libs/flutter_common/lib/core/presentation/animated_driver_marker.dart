@@ -243,7 +243,7 @@ class _AnimatedDriverMarkerState extends State<AnimatedDriverMarker>
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
+                        color: Colors.black.withValues(alpha: 0.15),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -334,7 +334,7 @@ class _AnimatedDriverMarkerState extends State<AnimatedDriverMarker>
               height: 72,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF4285F4).withOpacity(0.20),
+                color: const Color(0xFF4285F4).withValues(alpha: 0.20),
               ),
             ),
           ),

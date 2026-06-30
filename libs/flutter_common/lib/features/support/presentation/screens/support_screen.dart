@@ -143,7 +143,7 @@ class _SharedSupportScreenState extends State<SharedSupportScreen> {
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: cs.outline.withOpacity(0.15)),
+                side: BorderSide(color: cs.outline.withValues(alpha: 0.15)),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
