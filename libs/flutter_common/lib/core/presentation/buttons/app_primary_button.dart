@@ -26,6 +26,7 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      onTap: widget.isDisabled ? null : widget.onPressed,
       onTapDown: widget.isDisabled
           ? null
           : (_) => setState(() => _isPressed = true),
@@ -39,18 +40,20 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton> {
         scale: _isPressed ? 0.96 : 1.0,
         duration: const Duration(milliseconds: 150),
         curve: Curves.easeOutCubic,
-        child: ElevatedButton(
-          onPressed: widget.isDisabled ? null : widget.onPressed,
-          style: ButtonStyle(
-            padding: WidgetStateProperty.all(const EdgeInsets.all(16)),
-            backgroundColor: widget.color == PrimaryButtonColor.primary
-                ? primaryButtonBackground(context)
-                : errorButtonBackground(context),
-            overlayColor: WidgetStateProperty.all(
-              Colors.white.withValues(alpha: 0.1),
+        child: IgnorePointer(
+          child: ElevatedButton(
+            onPressed: widget.isDisabled ? null : widget.onPressed,
+            style: ButtonStyle(
+              padding: WidgetStateProperty.all(const EdgeInsets.all(16)),
+              backgroundColor: widget.color == PrimaryButtonColor.primary
+                  ? primaryButtonBackground(context)
+                  : errorButtonBackground(context),
+              overlayColor: WidgetStateProperty.all(
+                Colors.white.withValues(alpha: 0.1),
+              ),
             ),
+            child: widget.child,
           ),
-          child: widget.child,
         ),
       ),
     );

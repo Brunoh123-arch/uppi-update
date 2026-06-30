@@ -30,6 +30,7 @@ class _AppBorderedButtonState extends State<AppBorderedButton> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      onTap: widget.isDisabled ? null : widget.onPressed,
       onTapDown: widget.isDisabled
           ? null
           : (_) => setState(() => _isPressed = true),
@@ -43,29 +44,31 @@ class _AppBorderedButtonState extends State<AppBorderedButton> {
         scale: _isPressed ? 0.96 : 1.0,
         duration: const Duration(milliseconds: 150),
         curve: Curves.easeOutCubic,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: ColorPalette.primary95),
-          ),
-          child: CupertinoButton(
-            padding: const EdgeInsets.all(12),
-            onPressed: widget.isDisabled ? null : widget.onPressed,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (widget.icon != null)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: Icon(widget.icon, color: widget.textColor),
+        child: IgnorePointer(
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: ColorPalette.primary95),
+            ),
+            child: CupertinoButton(
+              padding: const EdgeInsets.all(12),
+              onPressed: widget.isDisabled ? null : widget.onPressed,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.icon != null)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Icon(widget.icon, color: widget.textColor),
+                    ),
+                  Text(
+                    widget.title,
+                    style: widget.isPrimary
+                        ? context.titleSmall?.copyWith(color: widget.textColor)
+                        : context.bodyMedium?.copyWith(color: widget.textColor),
                   ),
-                Text(
-                  widget.title,
-                  style: widget.isPrimary
-                      ? context.titleSmall?.copyWith(color: widget.textColor)
-                      : context.bodyMedium?.copyWith(color: widget.textColor),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
