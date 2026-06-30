@@ -291,6 +291,7 @@ class _RideHistoryDetailsScreenMobileState extends State<RideHistoryDetailsScree
                               previous.mapProvider != current.mapProvider,
                           builder: (context, settingsState) {
                             return AppGenericMap(
+                              interactive: true,
                               mode: MapViewMode.static,
                               initialLocation:
                                   widget.entity.waypoints.first.toGenericMapPlace,

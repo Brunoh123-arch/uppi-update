@@ -225,6 +225,7 @@ class _RideHistoryDetailsScreenDesktopState
                 previous.mapProvider != current.mapProvider,
             builder: (context, settingsState) {
               return AppGenericMap(
+                interactive: true,
                 mode: MapViewMode.static,
                 initialLocation: entity.waypoints.first.toGenericMapPlace,
                 padding: settingsState.mapProvider == MapProviderEnum.googleMaps

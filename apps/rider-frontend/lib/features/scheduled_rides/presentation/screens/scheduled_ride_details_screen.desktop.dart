@@ -22,6 +22,7 @@ class ScheduledRideDetailsScreenDesktop extends StatelessWidget {
       children: [
         Expanded(
           child: AppGenericMap(
+            interactive: true,
             mode: MapViewMode.static,
             initialLocation: entity.waypoints.first.toGenericMapPlace,
             padding: const EdgeInsets.symmetric(

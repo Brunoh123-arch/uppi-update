@@ -135,6 +135,7 @@ class ScheduledRidesDetailsSheet extends StatelessWidget {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: AppGenericMap(
+                            interactive: true,
                             mode: MapViewMode.static,
                             initialLocation:
                                 entity.waypoints.first.toGenericMapPlace,
