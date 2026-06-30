@@ -30,6 +30,7 @@ class _AppBorderedButtonState extends State<AppBorderedButton> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: widget.isDisabled ? null : widget.onPressed,
       onTapDown: widget.isDisabled
           ? null

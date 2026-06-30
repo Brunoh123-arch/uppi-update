@@ -26,6 +26,7 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: widget.isDisabled ? null : widget.onPressed,
       onTapDown: widget.isDisabled
           ? null
