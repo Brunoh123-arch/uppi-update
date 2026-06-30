@@ -45,7 +45,8 @@ class AuthBloc extends HydratedCubit<AuthState> {
   /// UPPI BRASIL: Escuta mudanças de auth em tempo real e lida com a restauração de sessão reativa.
   void _startAuthListeners() {
     _supabaseAuthSub?.cancel();
-    _supabaseAuthSub = Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
+    _supabaseAuthSub =
+        Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
       final session = data.session;
       final user = session?.user;
 
@@ -57,34 +58,40 @@ class AuthBloc extends HydratedCubit<AuthState> {
         );
 
         if (!alreadyAuthenticated) {
-          debugPrint('[AuthBloc-Rider] Supabase user detectado (${user.id}), recuperando perfil...');
+          debugPrint(
+              '[AuthBloc-Rider] Supabase user detectado (${user.id}), recuperando perfil...');
           try {
             var profileResult = await profileRepository.getProfile();
-            
+
             // UPPI BRASIL: Se o usuário estiver autenticado no Supabase Auth mas sem registro na tabela de profiles,
             // tenta criar automaticamente chamando a Edge Function sync-profile.
             if (profileResult.isLeft()) {
               final failure = profileResult.fold((l) => l, (r) => null)!;
               if (failure.errorMessage.contains('Perfil não encontrado')) {
-                debugPrint('[AuthBloc-Rider] Perfil não encontrado no banco de dados. Tentando auto-criar via sync-profile...');
+                debugPrint(
+                    '[AuthBloc-Rider] Perfil não encontrado no banco de dados. Tentando auto-criar via sync-profile...');
                 try {
                   await Supabase.instance.client.functions.invoke(
                     'sync-profile',
                     body: {
-                      'full_name': user.userMetadata?['full_name'] ?? user.userMetadata?['name'] ?? 'Usuário',
+                      'full_name': user.userMetadata?['full_name'] ??
+                          user.userMetadata?['name'] ??
+                          'Usuário',
                       'email': user.email ?? '',
                     },
                   );
                   profileResult = await profileRepository.getProfile();
                 } catch (e) {
-                  debugPrint('[AuthBloc-Rider] Erro ao tentar auto-criar perfil: $e');
+                  debugPrint(
+                      '[AuthBloc-Rider] Erro ao tentar auto-criar perfil: $e');
                 }
               }
             }
 
             profileResult.fold(
               (failure) {
-                debugPrint('[AuthBloc-Rider] Perfil não encontrado ou erro no DB ($failure), mantendo sessão ativa para onboarding.');
+                debugPrint(
+                    '[AuthBloc-Rider] Perfil não encontrado ou erro no DB ($failure), mantendo sessão ativa para onboarding.');
                 emit(const AuthState.unauthenticated());
                 if (!sessionRestored.isCompleted) {
                   sessionRestored.complete(false);
@@ -115,7 +122,8 @@ class AuthBloc extends HydratedCubit<AuthState> {
         }
       } else {
         if (state is _Authenticated) {
-          debugPrint('[AuthBloc-Rider] Supabase signedOut ou sem sessão — emitindo unauthenticated');
+          debugPrint(
+              '[AuthBloc-Rider] Supabase signedOut ou sem sessão — emitindo unauthenticated');
           emit(const AuthState.unauthenticated());
         }
         if (!sessionRestored.isCompleted) {
@@ -129,8 +137,6 @@ class AuthBloc extends HydratedCubit<AuthState> {
       }
     });
   }
-
-
 
   @override
   AuthState? fromJson(Map<String, dynamic> json) => AuthState.fromJson(json);
@@ -175,7 +181,9 @@ class AuthBloc extends HydratedCubit<AuthState> {
     state.mapOrNull(
       authenticated: (authenticated) {
         _profileSubscription?.cancel();
-        _profileSubscription = profileRepository.startProfileSubscription().listen((profileOrFailure) {
+        _profileSubscription = profileRepository
+            .startProfileSubscription()
+            .listen((profileOrFailure) {
           profileOrFailure.fold(
             (l) {
               if (Supabase.instance.client.auth.currentUser == null) {
