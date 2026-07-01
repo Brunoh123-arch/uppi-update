@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'app.dart';
+import 'core/utils/map_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +39,9 @@ void main() async {
       anonKey: anonKey ?? '',
     );
   }
+
+  // Inicializa o script de mapas (Web/Mobile) se necessário
+  await MapConfig.initializeMap();
 
   runApp(const AdminPanelApp());
 }

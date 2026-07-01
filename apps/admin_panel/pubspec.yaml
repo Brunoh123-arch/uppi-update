@@ -14,8 +14,11 @@ dependencies:
     sdk: flutter
   flutter_common:
     path: ../../libs/flutter_common
+  generic_map:
+    path: ../../libs/generic_map
   google_fonts: ^6.1.0
   flutter_map: ^7.0.2
+  google_maps_flutter: ^2.6.1
   latlong2: ^0.9.0
   image_picker: ^1.2.1
   camera: ^0.11.0

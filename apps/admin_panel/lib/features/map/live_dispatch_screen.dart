@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_map/flutter_map.dart';
+import 'package:generic_map/generic_map.dart';
 import 'package:latlong2/latlong.dart';
 
 class LiveDispatchScreen extends StatefulWidget {
@@ -13,7 +13,7 @@ class LiveDispatchScreen extends StatefulWidget {
 }
 
 class _LiveDispatchScreenState extends State<LiveDispatchScreen> {
-  final MapController _mapController = MapController();
+  MapViewController? _mapController;
   
   List<Map<String, dynamic>> _activeRides = [];
   Map<String, dynamic>? _selectedRide;
@@ -433,7 +433,7 @@ class _LiveDispatchScreenState extends State<LiveDispatchScreen> {
                               _subscribeToSelectedRideRealtime(ride['id'].toString());
                               
                               if (pickupLatLng != null) {
-                                _mapController.move(pickupLatLng, 14.5);
+                                _mapController?.moveCamera(pickupLatLng, 14.5);
                               }
                               if (isMobile) {
                                 Navigator.of(context).pop(); // Close drawer on mobile
@@ -447,86 +447,97 @@ class _LiveDispatchScreenState extends State<LiveDispatchScreen> {
       ],
     );
 
+    // Build markers list for GenericMap
+    final List<CustomMarker> markers = [];
+    if (pickupLatLng != null) {
+      markers.add(CustomMarker(
+        id: 'pickup',
+        position: pickupLatLng,
+        width: 54,
+        height: 54,
+        widget: const Material(
+          color: Colors.transparent,
+          child: Tooltip(
+            message: "Embarque (Passageiro)",
+            child: Icon(Icons.person_pin_circle, color: Colors.blueAccent, size: 45),
+          ),
+        ),
+      ));
+    }
+    if (dropoffLatLng != null) {
+      markers.add(CustomMarker(
+        id: 'dropoff',
+        position: dropoffLatLng,
+        width: 54,
+        height: 54,
+        widget: const Material(
+          color: Colors.transparent,
+          child: Tooltip(
+            message: "Desembarque",
+            child: Icon(Icons.location_on, color: Colors.redAccent, size: 45),
+          ),
+        ),
+      ));
+    }
+
+    if (_currentOffers.isNotEmpty) {
+      for (final offer in _currentOffers.where((offer) => offer['status'] == 'offered')) {
+        final driver = offer['profiles'];
+        final driverId = driver?['id']?.toString() ?? '';
+        LatLng? loc;
+        if (driverId.isNotEmpty && _driverLiveLocations.containsKey(driverId)) {
+          loc = _driverLiveLocations[driverId];
+        } else {
+          loc = driver != null ? _parsePostGISPoint(driver['current_location']?.toString()) : null;
+        }
+        final driverName = driver != null ? driver['full_name']?.toString() ?? 'Motorista' : 'Motorista';
+        
+        if (loc != null) {
+          markers.add(CustomMarker(
+            id: 'driver_$driverId',
+            position: loc,
+            width: 80,
+            height: 65,
+            widget: Material(
+              color: Colors.transparent,
+              child: Tooltip(
+                message: "OFERTA ATIVA: $driverName",
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF6C9F12),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text("15s OFFER", style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+                    ),
+                    const Icon(Icons.local_taxi, color: Colors.greenAccent, size: 36),
+                  ],
+                ),
+              ),
+            ),
+          ));
+        }
+      }
+    }
+
     final mapArea = Stack(
       children: [
         // Map Area
-        FlutterMap(
-          mapController: _mapController,
-          options: const MapOptions(
-            initialCenter: LatLng(-1.4558, -48.5024),
-            initialZoom: 13.0,
+        GenericMap(
+          provider: GoogleMapProvider(),
+          initialLocation: Place(
+            const LatLng(-1.4558, -48.5024),
+            'Belém, PA',
+            'Belém',
           ),
-          children: [
-            TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.uppi.admin',
-            ),
-            if (pickupLatLng != null)
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    point: pickupLatLng,
-                    width: 54,
-                    height: 54,
-                    child: const Tooltip(
-                      message: "Embarque (Passageiro)",
-                      child: Icon(Icons.person_pin_circle, color: Colors.blueAccent, size: 45),
-                    ),
-                  ),
-                  if (dropoffLatLng != null)
-                    Marker(
-                      point: dropoffLatLng,
-                      width: 54,
-                      height: 54,
-                      child: const Tooltip(
-                        message: "Desembarque",
-                        child: Icon(Icons.location_on, color: Colors.redAccent, size: 45),
-                      ),
-                    ),
-                ],
-              ),
-              
-            // Render current active offer driver
-            if (_currentOffers.isNotEmpty)
-              MarkerLayer(
-                markers: _currentOffers.where((offer) => offer['status'] == 'offered').map((offer) {
-                  final driver = offer['profiles'];
-                  final driverId = driver?['id']?.toString() ?? '';
-                  LatLng? loc;
-                  if (driverId.isNotEmpty && _driverLiveLocations.containsKey(driverId)) {
-                    loc = _driverLiveLocations[driverId];
-                  } else {
-                    loc = driver != null ? _parsePostGISPoint(driver['current_location']?.toString()) : null;
-                  }
-                  final driverName = driver != null ? driver['full_name']?.toString() ?? 'Motorista' : 'Motorista';
-                  
-                  if (loc != null) {
-                    return Marker(
-                      point: loc,
-                      width: 60,
-                      height: 60,
-                      child: Tooltip(
-                        message: "OFERTA ATIVA: $driverName",
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF6C9F12),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: const Text("15s OFFER", style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
-                            ),
-                            const Icon(Icons.local_taxi, color: Colors.greenAccent, size: 36),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
-                  return const Marker(point: LatLng(0,0), child: SizedBox());
-                }).toList(),
-              ),
-          ],
+          interactive: true,
+          myLocationEnabled: false,
+          markers: markers,
+          onControllerReady: (controller) {
+            _mapController = controller;
+          },
         ),
         
         // Floating active matching loop state panel

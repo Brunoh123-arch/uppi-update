@@ -541,7 +541,7 @@ packages:
     source: hosted
     version: "2.6.3"
   generic_map:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../../libs/generic_map"
       relative: true
@@ -612,7 +612,7 @@ packages:
     source: hosted
     version: "8.2.0"
   google_maps_flutter:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: google_maps_flutter
       sha256: f4040715c2998144a46cfc0fd91ee83226655af069dfed3d2b84552dc5e4facb
