@@ -1074,11 +1074,11 @@ class _HomeMapViewState extends State<HomeMapView> {
                                 final traveledPoints = fullRoute.sublist(0, driverIdx + 1);
                                 grayLine = PolyLineLayer(
                                   points: traveledPoints,
-                                  width: 7,
+                                  width: 9,
                                   gradientColors: [Colors.grey.withOpacity(0.5), Colors.grey.withOpacity(0.5)],
                                   strokeCap: StrokeCap.round,
                                   strokeJoin: StrokeJoin.round,
-                                  borderStrokeWidth: 2.5,
+                                  borderStrokeWidth: 3.0,
                                   borderColor: Colors.grey.shade600.withOpacity(0.5),
                                 );
                                 remainingRoute = fullRoute.sublist(driverIdx);
@@ -1096,11 +1096,11 @@ class _HomeMapViewState extends State<HomeMapView> {
 
                               final blueLine = PolyLineLayer(
                                 points: remainingRoutePoints,
-                                width: 7,
+                                width: 9,
                                 gradientColors: routeColors,
                                 strokeCap: StrokeCap.round,
                                 strokeJoin: StrokeJoin.round,
-                                borderStrokeWidth: 2.5,
+                                borderStrokeWidth: 3.0,
                                 borderColor: routeBorderColor,
                               );
 
@@ -1128,12 +1128,12 @@ class _HomeMapViewState extends State<HomeMapView> {
                                   }
                                   greenLine = PolyLineLayer(
                                     points: greenPoints,
-                                    width: 7,
+                                    width: 9,
                                     // Verde neon estilo 99 Motoristas
                                     gradientColors: const [Color(0xFF00E676), Color(0xFF00E676)],
                                     strokeCap: StrokeCap.round,
                                     strokeJoin: StrokeJoin.round,
-                                    borderStrokeWidth: 2.5,
+                                    borderStrokeWidth: 3.0,
                                     borderColor: const Color(0xFF00843D),
                                   );
                                 }
