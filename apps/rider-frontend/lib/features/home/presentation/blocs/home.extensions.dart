@@ -8,6 +8,8 @@ import 'package:rider_flutter/config/locator/locator.dart';
 import 'package:rider_flutter/core/blocs/location.dart';
 import 'package:flutter_common/core/blocs/settings.dart';
 import '../components/current_location_marker.dart';
+import 'package:flutter_common/core/presentation/markers/app_marker_pickup.dart';
+import 'package:flutter_common/core/presentation/markers/app_marker_drop_off.dart';
 
 import 'home.dart';
 
@@ -140,10 +142,38 @@ extension HomeStateX on HomeState {
           }
           final arrivedToWaypointIndex = value.order.arrivedAtWaypointIndex;
           if (arrivedToWaypointIndex != null && arrivedToWaypointIndex >= 0) {
-            markers.add(value.order.waypoints[arrivedToWaypointIndex + 1]
-                .markerDropoff(onTap: onTap));
+            final expectedAt = value.order.expectedAt;
+            final address = value.order.waypoints[arrivedToWaypointIndex + 1].address;
+            final diff = expectedAt.difference(DateTime.now());
+            final remainingMin = diff.inMinutes;
+            final displayAddress = remainingMin > 0 ? "$remainingMin min $address" : address;
+            markers.add(
+              AppMarkerDropoff(
+                address: displayAddress,
+                onTap: onTap,
+              ).genericMarker(value.order.waypoints[arrivedToWaypointIndex + 1].latLng2),
+            );
           } else {
-            markers.add(value.order.waypoints.first.markerPickup(onTap: onTap));
+            final etaPickup = value.order.etaPickup;
+            String address = value.order.waypoints.first.address;
+            if (etaPickup != null) {
+              final diff = etaPickup.difference(DateTime.now());
+              final remainingMin = diff.inMinutes;
+              if (remainingMin > 0) {
+                address = "$remainingMin min $address";
+              } else {
+                final remainingSec = diff.inSeconds;
+                if (remainingSec > 0) {
+                  address = "$remainingSec s $address";
+                }
+              }
+            }
+            markers.add(
+              AppMarkerPickup(
+                address: address,
+                onTap: onTap,
+              ).genericMarker(value.order.waypoints.first.latLng2),
+            );
           }
 
           return markers;
