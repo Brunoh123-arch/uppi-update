@@ -189,13 +189,13 @@ class _RideHistoryDetailsScreenMobileState extends State<RideHistoryDetailsScree
           _routePolylines = [
             PolyLineLayer(
               points: points,
-              width: 3,
-              gradientColors: const [
-                Color(0xff2892FF),
-                Color(0xff45FCDE),
-              ],
+              width: 8,
+              color: const Color(0xFF33CCFF),
+              gradientColors: const [Color(0xFF33CCFF), Color(0xFF33CCFF)],
               strokeCap: StrokeCap.round,
               strokeJoin: StrokeJoin.round,
+              borderStrokeWidth: 1.2,
+              borderColor: const Color(0xFF0D5F7A),
             ),
           ];
         });
