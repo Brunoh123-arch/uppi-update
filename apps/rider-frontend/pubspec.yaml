@@ -2,7 +2,7 @@ name: rider_flutter
 description: Uppi — Mobilidade urbana acessível no Brasil
 publish_to: "none"
 
-version: 3.0.2+4
+version: 3.0.2+6
 
 environment:
   sdk: ^3.6.0
