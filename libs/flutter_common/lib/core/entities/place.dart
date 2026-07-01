@@ -49,8 +49,6 @@ extension LatLngEntityListX on List<LatLngEntity> {
     gradientColors: const [Color(0xff2892FF), Color(0xff45FCDE)],
     strokeCap: StrokeCap.round,
     strokeJoin: StrokeJoin.round,
-    borderStrokeWidth: 2.5,
-    borderColor: const Color(0xFF1A56C4),
   );
 
   List<CustomMarker> get directionsCapMarkers => const [];

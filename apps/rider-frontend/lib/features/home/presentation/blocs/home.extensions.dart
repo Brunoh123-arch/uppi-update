@@ -211,8 +211,6 @@ extension HomeStateX on HomeState {
             gradientColors: const [Color(0xff2892FF), Color(0xff45FCDE)],
             strokeCap: StrokeCap.round,
             strokeJoin: StrokeJoin.round,
-            borderStrokeWidth: 3.0,
-            borderColor: const Color(0xFF1A56C4),
           ),
       ];
 }
