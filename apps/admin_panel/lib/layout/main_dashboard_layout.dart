@@ -287,28 +287,29 @@ class _MainDashboardLayoutState extends State<MainDashboardLayout> {
       _selectedIndex = 0;
     }
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      body: Row(
-        children: [
-          Container(
-            width: isDesktop ? 260 : 72,
-            color: theme.colorScheme.surface,
-            child: Column(
-              children: [
-                // 1. LEADING (Logo e papel)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 24.0, top: 16, left: 8, right: 8),
-                  child: Column(
-                    children: [
-                      Image.asset(
-                        'assets/images/logo.png',
-                        width: 42,
-                        height: 42,
-                        errorBuilder: (context, error, stackTrace) =>
-                            Icon(Icons.hexagon, size: 42, color: theme.colorScheme.primary),
-                      ),
-                      if (isDesktop) ...[
+    if (isDesktop) {
+      // Layout Desktop: Barra lateral expandida e conteúdo principal lado a lado
+      return Scaffold(
+        backgroundColor: theme.colorScheme.surface,
+        body: Row(
+          children: [
+            Container(
+              width: 260,
+              color: theme.colorScheme.surface,
+              child: Column(
+                children: [
+                  // 1. LEADING (Logo e papel)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 24.0, top: 16, left: 8, right: 8),
+                    child: Column(
+                      children: [
+                        Image.asset(
+                          'assets/images/logo.png',
+                          width: 42,
+                          height: 42,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Icon(Icons.hexagon, size: 42, color: theme.colorScheme.primary),
+                        ),
                         const SizedBox(height: 8),
                         Image.asset(
                           'assets/images/logo-header.png',
@@ -327,7 +328,9 @@ class _MainDashboardLayoutState extends State<MainDashboardLayout> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: _currentRole == 'superadmin' ? Colors.deepPurpleAccent.withAlpha(50) : Colors.blueAccent.withAlpha(50),
+                            color: _currentRole == 'superadmin'
+                                ? Colors.deepPurpleAccent.withOpacity(0.2)
+                                : Colors.blueAccent.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: _currentRole == 'superadmin' ? Colors.deepPurpleAccent : Colors.blueAccent,
@@ -344,12 +347,125 @@ class _MainDashboardLayoutState extends State<MainDashboardLayout> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  const Divider(color: Colors.white10, height: 1),
+                  
+                  // 2. DESTINATIONS (Scrollável)
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: List.generate(visibleMenus.length, (index) {
+                          final menu = visibleMenus[index];
+                          final isSelected = index == _selectedIndex;
+                          return SidebarItem(
+                            icon: isSelected ? menu.selectedIcon : menu.icon,
+                            label: menu.label,
+                            isSelected: isSelected,
+                            isExpanded: true,
+                            onTap: () {
+                              setState(() => _selectedIndex = index);
+                            },
+                          );
+                        }),
+                      ),
+                    ),
+                  ),
+                  
+                  const Divider(color: Colors.white10, height: 1),
+                  
+                  // 3. TRAILING (Email e Logout)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16, top: 16, left: 8, right: 8),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          currentEmail,
+                          style: const TextStyle(color: Colors.white38, fontSize: 11),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        IconButton(
+                          icon: const Icon(Icons.logout, color: Colors.redAccent),
+                          tooltip: 'Sair do Painel',
+                          onPressed: () async {
+                            await Supabase.instance.client.auth.signOut();
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const VerticalDivider(thickness: 1, width: 1, color: Colors.white10),
+            Expanded(
+              child: visibleMenus.isNotEmpty 
+                ? visibleMenus[_selectedIndex].content 
+                : const Center(child: Text('Acesso Negado')),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // Layout Mobile/Tablet: Gaveta (Drawer) com barra superior
+      return Scaffold(
+        backgroundColor: theme.colorScheme.surface,
+        appBar: AppBar(
+          backgroundColor: theme.colorScheme.surface,
+          title: Text(
+            visibleMenus.isNotEmpty ? visibleMenus[_selectedIndex].label : 'Admin',
+            style: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 18),
+          ),
+          elevation: 0,
+          iconTheme: theme.iconTheme,
+          bottom: const PreferredSize(
+            preferredSize: Size.fromHeight(1),
+            child: Divider(color: Colors.white10, height: 1),
+          ),
+        ),
+        drawer: Drawer(
+          backgroundColor: theme.colorScheme.surface,
+          child: SafeArea(
+            child: Column(
+              children: [
+                // Header do Drawer
+                Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    children: [
+                      Image.asset(
+                        'assets/images/logo.png',
+                        width: 42,
+                        height: 42,
+                        errorBuilder: (context, error, stackTrace) =>
+                            Icon(Icons.hexagon, size: 42, color: theme.colorScheme.primary),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'UPPI ADMIN',
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _currentRole.toUpperCase(),
+                        style: TextStyle(
+                          color: _currentRole == 'superadmin' ? Colors.purpleAccent : Colors.blueAccent,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 const Divider(color: Colors.white10, height: 1),
                 
-                // 2. DESTINATIONS (Scrollável)
+                // Menus no Drawer
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
@@ -360,9 +476,10 @@ class _MainDashboardLayoutState extends State<MainDashboardLayout> {
                           icon: isSelected ? menu.selectedIcon : menu.icon,
                           label: menu.label,
                           isSelected: isSelected,
-                          isExpanded: isDesktop,
+                          isExpanded: true,
                           onTap: () {
                             setState(() => _selectedIndex = index);
+                            Navigator.of(context).pop(); // Fecha o drawer
                           },
                         );
                       }),
@@ -372,26 +489,30 @@ class _MainDashboardLayoutState extends State<MainDashboardLayout> {
                 
                 const Divider(color: Colors.white10, height: 1),
                 
-                // 3. TRAILING (Email e Logout)
+                // Trailing no Drawer
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 16, top: 16, left: 8, right: 8),
+                  padding: const EdgeInsets.all(16.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (isDesktop) ...[
-                        Text(
-                          currentEmail,
-                          style: const TextStyle(color: Colors.white38, fontSize: 11),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                      IconButton(
-                        icon: const Icon(Icons.logout, color: Colors.redAccent),
-                        tooltip: 'Sair do Painel',
+                      Text(
+                        currentEmail,
+                        style: const TextStyle(color: Colors.white38, fontSize: 11),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton.icon(
                         onPressed: () async {
                           await Supabase.instance.client.auth.signOut();
                         },
+                        icon: const Icon(Icons.logout, size: 16),
+                        label: const Text('Sair'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent.withOpacity(0.2),
+                          foregroundColor: Colors.redAccent,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
                       ),
                     ],
                   ),
@@ -399,14 +520,11 @@ class _MainDashboardLayoutState extends State<MainDashboardLayout> {
               ],
             ),
           ),
-          const VerticalDivider(thickness: 1, width: 1, color: Colors.white10),
-          Expanded(
-            child: visibleMenus.isNotEmpty 
-              ? visibleMenus[_selectedIndex].content 
-              : const Center(child: Text('Acesso Negado')),
-          ),
-        ],
-      ),
-    );
+        ),
+        body: visibleMenus.isNotEmpty 
+          ? visibleMenus[_selectedIndex].content 
+          : const Center(child: Text('Acesso Negado')),
+      );
+    }
   }
 }

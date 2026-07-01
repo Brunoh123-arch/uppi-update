@@ -548,86 +548,163 @@ class _OverviewDashboardScreenState extends State<OverviewDashboardScreen> {
 
 
 
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isMobile = screenWidth < 768;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(32),
+      padding: EdgeInsets.all(isMobile ? 16 : 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // HEADER COM SELETOR DE PERÍODO
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Dashboard Executivo',
-                    style: GoogleFonts.outfit(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Visão operacional completa da plataforma em tempo real.',
-                    style: TextStyle(color: Colors.white38, fontSize: 14),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const PulsingIndicator(color: Colors.greenAccent),
-                      const SizedBox(width: 8),
-                      Text(
-                        _lastUpdateString.isEmpty
-                            ? 'Conectando...'
-                            : 'Conectado • Última atualização: $_lastUpdateString',
-                        style: const TextStyle(color: Colors.white38, fontSize: 12),
+          // HEADER COM SELETOR DE PERÍODO RESPONSIVO
+          isMobile
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Dashboard Executivo',
+                      style: GoogleFonts.outfit(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
-                    ],
-                  ),
-                ],
-              ),
-              // Seletor de período premium
-              Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white10),
-                ),
-                padding: const EdgeInsets.all(4),
-                child: Row(
-                  children: ['Hoje', '7D', '30D', '90D'].map((period) {
-                    final isSelected = _selectedPeriod == period;
-                    return InkWell(
-                      onTap: () {
-                        setState(() {
-                          _selectedPeriod = period;
-                        });
-                        _loadDashboardData();
-                      },
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: isSelected ? const Color(0xFF096EFF) : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Visão operacional completa em tempo real.',
+                      style: TextStyle(color: Colors.white38, fontSize: 13),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const PulsingIndicator(color: Colors.greenAccent),
+                        const SizedBox(width: 8),
+                        Text(
+                          _lastUpdateString.isEmpty
+                              ? 'Conectando...'
+                              : 'Conectado • $_lastUpdateString',
+                          style: const TextStyle(color: Colors.white38, fontSize: 11),
                         ),
-                        child: Text(
-                          period == 'Hoje' ? 'Hoje' : (period == '7D' ? '7 Dias' : (period == '30D' ? '30 Dias' : '90 Dias')),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Seletor de período no mobile
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E293B),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white10),
+                        ),
+                        padding: const EdgeInsets.all(4),
+                        child: Row(
+                          children: ['Hoje', '7D', '30D', '90D'].map((period) {
+                            final isSelected = _selectedPeriod == period;
+                            return InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _selectedPeriod = period;
+                                });
+                                _loadDashboardData();
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? const Color(0xFF096EFF) : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  period == 'Hoje' ? 'Hoje' : (period == '7D' ? '7 Dias' : (period == '30D' ? '30 Dias' : '90 Dias')),
+                                  style: GoogleFonts.outfit(
+                                    fontWeight: FontWeight.bold,
+                                    color: isSelected ? Colors.white : Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Dashboard Executivo',
                           style: GoogleFonts.outfit(
+                            fontSize: 32,
                             fontWeight: FontWeight.bold,
-                            color: isSelected ? Colors.white : Colors.white70,
-                            fontSize: 13,
+                            color: Colors.white,
                           ),
                         ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Visão operacional completa da plataforma em tempo real.',
+                          style: TextStyle(color: Colors.white38, fontSize: 14),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const PulsingIndicator(color: Colors.greenAccent),
+                            const SizedBox(width: 8),
+                            Text(
+                              _lastUpdateString.isEmpty
+                                  ? 'Conectando...'
+                                  : 'Conectado • Última atualização: $_lastUpdateString',
+                              style: const TextStyle(color: Colors.white38, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    // Seletor de período premium
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white10),
                       ),
-                    );
-                  }).toList(),
+                      padding: const EdgeInsets.all(4),
+                      child: Row(
+                        children: ['Hoje', '7D', '30D', '90D'].map((period) {
+                          final isSelected = _selectedPeriod == period;
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                _selectedPeriod = period;
+                              });
+                              _loadDashboardData();
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isSelected ? const Color(0xFF096EFF) : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                period == 'Hoje' ? 'Hoje' : (period == '7D' ? '7 Dias' : (period == '30D' ? '30 Dias' : '90 Dias')),
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.bold,
+                                  color: isSelected ? Colors.white : Colors.white70,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
           const SizedBox(height: 32),
 
           // 8 KPI CARDS - GRID RESPONSIVO
@@ -789,17 +866,32 @@ class _OverviewDashboardScreenState extends State<OverviewDashboardScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(child: LiveStatusCard(label: 'Procurando Motorista', value: searchingRides, color: Colors.orangeAccent)),
-              const SizedBox(width: 16),
-              Expanded(child: LiveStatusCard(label: 'Motorista a Caminho', value: arrivingRides, color: Colors.blueAccent)),
-              const SizedBox(width: 16),
-              Expanded(child: LiveStatusCard(label: 'Em Viagem', value: inProgressRides, color: Colors.greenAccent)),
-              const SizedBox(width: 16),
-              Expanded(child: LiveStatusCard(label: 'Aguardando Avaliação', value: waitingReviewRides, color: Colors.purpleAccent)),
-            ],
-          ),
+          LayoutBuilder(builder: (context, constraints) {
+            final double widthFactor = constraints.maxWidth < 600 ? 2.0 : 4.0;
+            final double cardWidth = (constraints.maxWidth - ((widthFactor - 1) * 16)) / widthFactor;
+            return Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              children: [
+                SizedBox(
+                  width: cardWidth,
+                  child: LiveStatusCard(label: 'Procurando Motorista', value: searchingRides, color: Colors.orangeAccent),
+                ),
+                SizedBox(
+                  width: cardWidth,
+                  child: LiveStatusCard(label: 'Motorista a Caminho', value: arrivingRides, color: Colors.blueAccent),
+                ),
+                SizedBox(
+                  width: cardWidth,
+                  child: LiveStatusCard(label: 'Em Viagem', value: inProgressRides, color: Colors.greenAccent),
+                ),
+                SizedBox(
+                  width: cardWidth,
+                  child: LiveStatusCard(label: 'Aguardando Avaliação', value: waitingReviewRides, color: Colors.purpleAccent),
+                ),
+              ],
+            );
+          }),
           const SizedBox(height: 32),
 
           // GRÁFICOS LADO A LADO
@@ -1467,42 +1559,77 @@ class _OverviewDashboardScreenState extends State<OverviewDashboardScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildQuickActionButton(
-                  context,
-                  icon: Icons.verified_user_rounded,
-                  label: 'Aprovar Próximo KYC',
-                  subtitle: 'Aprova o primeiro motorista pendente',
-                  color: Colors.blueAccent,
-                  onTap: () => _approveNextKyc(context),
+          LayoutBuilder(builder: (context, constraints) {
+            final bool isNarrow = constraints.maxWidth < 600;
+            if (isNarrow) {
+              return Column(
+                children: [
+                  _buildQuickActionButton(
+                    context,
+                    icon: Icons.verified_user_rounded,
+                    label: 'Aprovar Próximo KYC',
+                    subtitle: 'Aprova o primeiro motorista pendente',
+                    color: Colors.blueAccent,
+                    onTap: () => _approveNextKyc(context),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildQuickActionButton(
+                    context,
+                    icon: Icons.local_activity_rounded,
+                    label: 'Criar Cupom Relâmpago',
+                    subtitle: 'Gera cupom de desconto de 15%',
+                    color: Colors.purpleAccent,
+                    onTap: () => _showQuickCouponDialog(context),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildQuickActionButton(
+                    context,
+                    icon: Icons.campaign_rounded,
+                    label: 'Comunicado Global',
+                    subtitle: 'Envia mensagem para todos os apps',
+                    color: Colors.orangeAccent,
+                    onTap: () => _showQuickAnnouncementDialog(context),
+                  ),
+                ],
+              );
+            }
+            return Row(
+              children: [
+                Expanded(
+                  child: _buildQuickActionButton(
+                    context,
+                    icon: Icons.verified_user_rounded,
+                    label: 'Aprovar Próximo KYC',
+                    subtitle: 'Aprova o primeiro motorista pendente',
+                    color: Colors.blueAccent,
+                    onTap: () => _approveNextKyc(context),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildQuickActionButton(
-                  context,
-                  icon: Icons.local_activity_rounded,
-                  label: 'Criar Cupom Relâmpago',
-                  subtitle: 'Gera cupom de desconto de 15%',
-                  color: Colors.purpleAccent,
-                  onTap: () => _showQuickCouponDialog(context),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildQuickActionButton(
+                    context,
+                    icon: Icons.local_activity_rounded,
+                    label: 'Criar Cupom Relâmpago',
+                    subtitle: 'Gera cupom de desconto de 15%',
+                    color: Colors.purpleAccent,
+                    onTap: () => _showQuickCouponDialog(context),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildQuickActionButton(
-                  context,
-                  icon: Icons.campaign_rounded,
-                  label: 'Comunicado Global',
-                  subtitle: 'Envia mensagem para todos os apps',
-                  color: Colors.orangeAccent,
-                  onTap: () => _showQuickAnnouncementDialog(context),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildQuickActionButton(
+                    context,
+                    icon: Icons.campaign_rounded,
+                    label: 'Comunicado Global',
+                    subtitle: 'Envia mensagem para todos os apps',
+                    color: Colors.orangeAccent,
+                    onTap: () => _showQuickAnnouncementDialog(context),
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            );
+          }),
         ],
       ),
     );
