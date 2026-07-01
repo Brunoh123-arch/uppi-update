@@ -186,11 +186,13 @@ class _RideHistoryDetailsScreenDesktopState
           _routePolylines = [
             PolyLineLayer(
               points: points,
-              width: 7,
-              color: const Color(0xff45FCDE),
-              gradientColors: const [Color(0xff2892FF), Color(0xff45FCDE)],
+              width: 8,
+              color: const Color(0xFF33CCFF),
+              gradientColors: const [Color(0xFF33CCFF), Color(0xFF33CCFF)],
               strokeCap: StrokeCap.round,
               strokeJoin: StrokeJoin.round,
+              borderStrokeWidth: 1.2,
+              borderColor: const Color(0xFF0D5F7A),
             ),
           ];
         });
