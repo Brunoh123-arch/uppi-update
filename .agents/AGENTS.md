@@ -12,3 +12,11 @@
 - **Evitar Superengenharia e Alucinações:** O agente deve priorizar sempre as soluções mais simples, diretas e nativas do próprio framework. Não crie scripts adicionais ou ferramentas paralelas sem necessidade real. Evite propor complexidades desnecessárias ou inventar soluções de contorno para ferramentas oficiais estáveis (como o Flutter CLI e VS Code).
 
 - **Força Máxima e Inteligência Suprema:** O agente deve agir com o máximo de precisão, foco e inteligência. Resolva os problemas de ponta a ponta de forma direta, analisando logs reais e aplicando correções definitivas no código. Evite suposições superficiais, siga as instruções à risca e mantenha a qualidade de código em nível sênior.
+
+- **Ambiente de Testes e Login Real:** O login nos aplicativos (Passageiro e Motorista) em ambiente de teste deve ser feito sempre usando as credenciais oficiais de teste (+55 11 99999-9999 / OTP 123456) configuradas no Firebase. Nunca crie botões visuais de desvio de login (Bypass / Ignorar Login) na interface de produção.
+
+- **Google Maps e Chaves de API:** Chaves de API (especialmente da Google Maps API) devem ser lidas estritamente do arquivo `.env` local, sem codificação estática. Se o carregamento de configurações do Supabase falhar (Timeout), o aplicativo deve prosseguir usando o fallback local com a chave do `.env`.
+
+- **Deploy na Play Store (Fastlane):** O deploy do app na Play Store é feito navegando até a pasta `apps/rider-frontend/android` e executando `fastlane beta`. O `versionCode` no arquivo `pubspec.yaml` do rider-frontend deve ser incrementado antes de cada nova build de deploy.
+
+- **Fluxo de Trabalho Git (Sincronização para Trabalho Remoto):** Sempre que concluir qualquer alteração solicitada, o agente deve propor e rodar os comandos `git add .`, `git commit -m "<tipo>: <mensagem em português>"` e `git push` para sincronizar o repositório remoto e permitir que o usuário trabalhe do escritório de forma transparente.
