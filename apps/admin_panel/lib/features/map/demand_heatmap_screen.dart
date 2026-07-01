@@ -115,340 +115,372 @@ class _DemandHeatmapScreenState extends State<DemandHeatmapScreen> {
         return Colors.yellow.withOpacity(0.35);
     }
   }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _kBackground,
-      body: Row(
-        children: [
-          // Left Sidebar Panels
-          Container(
-            width: 350,
-            decoration: const BoxDecoration(
-              color: _kSurface,
-              border: Border(right: BorderSide(color: Colors.white10)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Title Block
-                Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(Icons.local_fire_department, color: Colors.redAccent, size: 28),
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        'Calor de Demanda',
-                        style: GoogleFonts.outfit(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(color: Colors.white10, height: 1),
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isMobile = screenWidth < 768;
 
-                // Live Stats Block
-                Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'ATIVIDADE EM TEMPO REAL',
-                        style: TextStyle(color: _kSubtext, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildMiniStat(
-                        label: 'Corridas Solicitadas (Sem Motorista)',
-                        value: _openRidesCount.toString(),
-                        color: Colors.blueAccent,
-                        icon: Icons.person_pin_circle,
-                      ),
-                      const SizedBox(height: 12),
-                      _buildMiniStat(
-                        label: 'Motoristas Disponíveis (Online)',
-                        value: _onlineDriversCount.toString(),
-                        color: Colors.greenAccent,
-                        icon: Icons.local_taxi,
-                      ),
-                    ],
-                  ),
+    final sidebarPanel = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Title Block
+        Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const Divider(color: Colors.white10, height: 1),
-
-                // Controls Block
-                Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'CONFIGURAÇÕES DE VISUALIZAÇÃO',
-                        style: TextStyle(color: _kSubtext, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2),
-                      ),
-                      const SizedBox(height: 16),
-                      // Time Filter Dropdown
-                      DropdownButtonFormField<String>(
-                        initialValue: _selectedTimeFilter,
-                        dropdownColor: _kSurface,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(
-                          labelText: 'Período de Análise',
-                          labelStyle: TextStyle(color: _kSubtext),
-                          border: OutlineInputBorder(borderSide: BorderSide(color: _kBorder)),
-                          enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: _kBorder)),
-                        ),
-                        items: const [
-                          DropdownMenuItem(value: '30m', child: Text('Últimos 30 minutos')),
-                          DropdownMenuItem(value: '1h', child: Text('Última 1 hora')),
-                          DropdownMenuItem(value: '6h', child: Text('Últimas 6 horas')),
-                          DropdownMenuItem(value: '24h', child: Text('Últimas 24 horas')),
-                        ],
-                        onChanged: (val) {
-                          if (val != null) {
-                            setState(() => _selectedTimeFilter = val);
-                            _fetchHeatmapData();
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      SwitchListTile(
-                        title: const Text('Mostrar Motoristas', style: TextStyle(color: Colors.white, fontSize: 13)),
-                        value: _showDrivers,
-                        activeThumbColor: Colors.greenAccent,
-                        contentPadding: EdgeInsets.zero,
-                        onChanged: (val) => setState(() => _showDrivers = val),
-                      ),
-                      SwitchListTile(
-                        title: const Text('Mostrar Passageiros', style: TextStyle(color: Colors.white, fontSize: 13)),
-                        value: _showRides,
-                        activeThumbColor: Colors.blueAccent,
-                        contentPadding: EdgeInsets.zero,
-                        onChanged: (val) => setState(() => _showRides = val),
-                      ),
-                    ],
-                  ),
+                child: const Icon(Icons.local_fire_department, color: Colors.redAccent, size: 28),
+              ),
+              const SizedBox(width: 16),
+              Text(
+                'Calor de Demanda',
+                style: GoogleFonts.outfit(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
-                const Divider(color: Colors.white10, height: 1),
-
-                // Hotspots List Block
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
-                        child: Text(
-                          'ZONAS QUENTES DETECTADAS',
-                          style: TextStyle(color: _kSubtext, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2),
-                        ),
-                      ),
-                      Expanded(
-                        child: _isLoading && _hotspots.isEmpty
-                            ? const Center(child: CircularProgressIndicator())
-                            : _hotspots.isEmpty
-                                ? const Center(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(24.0),
-                                      child: Text(
-                                        'Nenhuma zona de calor detectada com demanda excessiva no período.',
-                                        style: TextStyle(color: _kSubtext, fontSize: 12),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  )
-                                : ListView.separated(
-                                    itemCount: _hotspots.length,
-                                    separatorBuilder: (context, index) => const Divider(color: Colors.white10, height: 1),
-                                    itemBuilder: (context, index) {
-                                      final h = _hotspots[index];
-                                      final mult = (h['multiplier'] as num?)?.toDouble() ?? 1.0;
-                                      final intensity = h['intensity']?.toString() ?? 'medium';
-                                      final orders = h['openOrders'] ?? 0;
-                                      final drivers = h['availableDrivers'] ?? 0;
-                                      final lat = (h['lat'] as num).toDouble();
-                                      final lng = (h['lng'] as num).toDouble();
-
-                                      return ListTile(
-                                        title: Text(
-                                          'Setor ${h['zone']?.toString().replaceAll('_', ' - ') ?? ''}',
-                                          style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
-                                        ),
-                                        subtitle: Text(
-                                          'Pedidos: $orders | Motoristas: $drivers',
-                                          style: const TextStyle(color: _kSubtext, fontSize: 12),
-                                        ),
-                                        trailing: Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: _getHeatmapColor(intensity).withOpacity(0.2),
-                                            borderRadius: BorderRadius.circular(12),
-                                            border: Border.all(color: _getHeatmapColor(intensity)),
-                                          ),
-                                          child: Text(
-                                            '${mult.toStringAsFixed(1)}x',
-                                            style: TextStyle(
-                                              color: _getHeatmapColor(intensity),
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ),
-                                        onTap: () {
-                                          _mapController.move(LatLng(lat, lng), 14.5);
-                                        },
-                                      );
-                                    },
-                                  ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
+        const Divider(color: Colors.white10, height: 1),
 
-          // Map Area
-          Expanded(
-            child: Stack(
-              children: [
-                FlutterMap(
-                  mapController: _mapController,
-                  options: const MapOptions(
-                    initialCenter: LatLng(-1.4558, -48.5024),
-                    initialZoom: 13.0,
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.uppi.admin',
-                    ),
-                    
-                    // Heatmap circle overlays
-                    CircleLayer(
-                      circles: _hotspots.map((h) {
-                        final lat = (h['lat'] as num).toDouble();
-                        final lng = (h['lng'] as num).toDouble();
-                        final intensity = h['intensity']?.toString() ?? 'medium';
+        // Live Stats Block
+        Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'ATIVIDADE EM TEMPO REAL',
+                style: TextStyle(color: _kSubtext, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+              ),
+              const SizedBox(height: 16),
+              _buildMiniStat(
+                label: 'Corridas Solicitadas (Sem Motorista)',
+                value: _openRidesCount.toString(),
+                color: Colors.blueAccent,
+                icon: Icons.person_pin_circle,
+              ),
+              const SizedBox(height: 12),
+              _buildMiniStat(
+                label: 'Motoristas Disponíveis (Online)',
+                value: _onlineDriversCount.toString(),
+                color: Colors.greenAccent,
+                icon: Icons.local_taxi,
+              ),
+            ],
+          ),
+        ),
+        const Divider(color: Colors.white10, height: 1),
 
-                        return CircleMarker(
-                          point: LatLng(lat, lng),
-                          color: _getHeatmapColor(intensity),
-                          borderStrokeWidth: 1.5,
-                          borderColor: _getHeatmapColor(intensity).withOpacity(0.8),
-                          useRadiusInMeter: true,
-                          radius: 800, // Raio aproximado da zona quente
-                        );
-                      }).toList(),
-                    ),
+        // Controls Block
+        Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'CONFIGURAÇÕES DE VISUALIZAÇÃO',
+                style: TextStyle(color: _kSubtext, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+              ),
+              const SizedBox(height: 16),
+              // Time Filter Dropdown
+              DropdownButtonFormField<String>(
+                value: _selectedTimeFilter,
+                dropdownColor: _kSurface,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  labelText: 'Período de Análise',
+                  labelStyle: TextStyle(color: _kSubtext),
+                  border: OutlineInputBorder(borderSide: BorderSide(color: _kBorder)),
+                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: _kBorder)),
+                ),
+                items: const [
+                  DropdownMenuItem(value: '30m', child: Text('Últimos 30 minutos')),
+                  DropdownMenuItem(value: '1h', child: Text('Última 1 hora')),
+                  DropdownMenuItem(value: '6h', child: Text('Últimas 6 horas')),
+                  DropdownMenuItem(value: '24h', child: Text('Últimas 24 horas')),
+                ],
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() => _selectedTimeFilter = val);
+                    _fetchHeatmapData();
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              SwitchListTile(
+                title: const Text('Mostrar Motoristas', style: TextStyle(color: Colors.white, fontSize: 13)),
+                value: _showDrivers,
+                activeThumbColor: Colors.greenAccent,
+                contentPadding: EdgeInsets.zero,
+                onChanged: (val) => setState(() => _showDrivers = val),
+              ),
+              SwitchListTile(
+                title: const Text('Mostrar Passageiros', style: TextStyle(color: Colors.white, fontSize: 13)),
+                value: _showRides,
+                activeThumbColor: Colors.blueAccent,
+                contentPadding: EdgeInsets.zero,
+                onChanged: (val) => setState(() => _showRides = val),
+              ),
+            ],
+          ),
+        ),
+        const Divider(color: Colors.white10, height: 1),
 
-                    // Markers
-                    MarkerLayer(
-                      markers: [
-                        // Hotspot label tags
-                        ..._hotspots.map((h) {
-                          final lat = (h['lat'] as num).toDouble();
-                          final lng = (h['lng'] as num).toDouble();
-                          final mult = (h['multiplier'] as num?)?.toDouble() ?? 1.0;
-                          final intensity = h['intensity']?.toString() ?? 'medium';
-
-                          return Marker(
-                            point: LatLng(lat, lng),
-                            width: 100,
-                            height: 30,
-                            child: Container(
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: _kBackground.withOpacity(0.85),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: _getHeatmapColor(intensity)),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.flash_on, color: _getHeatmapColor(intensity), size: 12),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                    'Multiplicador: ${mult.toStringAsFixed(1)}x',
-                                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
+        // Hotspots List Block
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
+                child: Text(
+                  'ZONAS QUENTES DETECTADAS',
+                  style: TextStyle(color: _kSubtext, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                ),
+              ),
+              Expanded(
+                child: _isLoading && _hotspots.isEmpty
+                    ? const Center(child: CircularProgressIndicator())
+                    : _hotspots.isEmpty
+                        ? const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(24.0),
+                              child: Text(
+                                'Nenhuma zona de calor detectada com demanda excessiva no período.',
+                                style: TextStyle(color: _kSubtext, fontSize: 12),
+                                textAlign: TextAlign.center,
                               ),
                             ),
-                          );
-                        }),
-                      ],
-                    ),
-                  ],
-                ),
+                          )
+                        : ListView.separated(
+                            itemCount: _hotspots.length,
+                            separatorBuilder: (context, index) => const Divider(color: Colors.white10, height: 1),
+                            itemBuilder: (context, index) {
+                              final h = _hotspots[index];
+                              final mult = (h['multiplier'] as num?)?.toDouble() ?? 1.0;
+                              final intensity = h['intensity']?.toString() ?? 'medium';
+                              final orders = h['openOrders'] ?? 0;
+                              final drivers = h['availableDrivers'] ?? 0;
+                              final lat = (h['lat'] as num).toDouble();
+                              final lng = (h['lng'] as num).toDouble();
 
-                // Top Floating Toolbar
-                Positioned(
-                  top: 20,
-                  left: 20,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: _kBackground.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: _kBorder),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Colors.greenAccent,
-                            shape: BoxShape.circle,
+                              return ListTile(
+                                title: Text(
+                                  'Setor ${h['zone']?.toString().replaceAll('_', ' - ') ?? ''}',
+                                  style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                                ),
+                                subtitle: Text(
+                                  'Pedidos: $orders | Motoristas: $drivers',
+                                  style: const TextStyle(color: _kSubtext, fontSize: 12),
+                                ),
+                                trailing: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: _getHeatmapColor(intensity).withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: _getHeatmapColor(intensity)),
+                                  ),
+                                  child: Text(
+                                    '${mult.toStringAsFixed(1)}x',
+                                    style: TextStyle(
+                                      color: _getHeatmapColor(intensity),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                                onTap: () {
+                                  _mapController.move(LatLng(lat, lng), 14.5);
+                                  if (isMobile) {
+                                    Navigator.of(context).pop(); // Fecha o drawer no mobile
+                                  }
+                                },
+                              );
+                            },
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Conexão Live Supabase ativa',
-                          style: GoogleFonts.outfit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
 
-                // Loading Indicator overlay
-                if (_isLoading)
-                  Positioned(
-                    top: 20,
-                    right: 20,
+    final mapArea = Stack(
+      children: [
+        FlutterMap(
+          mapController: _mapController,
+          options: const MapOptions(
+            initialCenter: LatLng(-1.4558, -48.5024),
+            initialZoom: 13.0,
+          ),
+          children: [
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.uppi.admin',
+            ),
+            
+            // Heatmap circle overlays
+            CircleLayer(
+              circles: _hotspots.map((h) {
+                final lat = (h['lat'] as num).toDouble();
+                final lng = (h['lng'] as num).toDouble();
+                final intensity = h['intensity']?.toString() ?? 'medium';
+
+                return CircleMarker(
+                  point: LatLng(lat, lng),
+                  color: _getHeatmapColor(intensity),
+                  borderStrokeWidth: 1.5,
+                  borderColor: _getHeatmapColor(intensity).withOpacity(0.8),
+                  useRadiusInMeter: true,
+                  radius: 800, // Raio aproximado da zona quente
+                );
+              }).toList(),
+            ),
+
+            // Markers
+            MarkerLayer(
+              markers: [
+                // Hotspot label tags
+                ..._hotspots.map((h) {
+                  final lat = (h['lat'] as num).toDouble();
+                  final lng = (h['lng'] as num).toDouble();
+                  final mult = (h['multiplier'] as num?)?.toDouble() ?? 1.0;
+                  final intensity = h['intensity']?.toString() ?? 'medium';
+
+                  return Marker(
+                    point: LatLng(lat, lng),
+                    width: 100,
+                    height: 30,
                     child: Container(
-                      padding: const EdgeInsets.all(12),
+                      alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: _kBackground.withOpacity(0.85),
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(color: _kBorder),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: _getHeatmapColor(intensity)),
                       ),
-                      child: const SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.redAccent),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.flash_on, color: _getHeatmapColor(intensity), size: 12),
+                          const SizedBox(width: 2),
+                          Text(
+                            'Multiplicador: ${mult.toStringAsFixed(1)}x',
+                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
                     ),
+                  );
+                }),
+              ],
+            ),
+          ],
+        ),
+
+        // Top Floating Toolbar
+        Positioned(
+          top: 20,
+          left: 20,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: _kBackground.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: _kBorder),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Colors.greenAccent,
+                    shape: BoxShape.circle,
                   ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  isMobile ? 'Live' : 'Conexão Live Supabase ativa',
+                  style: GoogleFonts.outfit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
+                ),
               ],
             ),
           ),
-        ],
-      ),
+        ),
+
+        // Loading Indicator overlay
+        if (_isLoading)
+          Positioned(
+            top: 20,
+            right: 20,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: _kBackground.withOpacity(0.85),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: _kBorder),
+              ),
+              child: const SizedBox(
+                height: 18,
+                width: 18,
+                child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.redAccent),
+              ),
+            ),
+          ),
+
+        // Floating action button to open controls/stats drawer on mobile
+        if (isMobile)
+          Positioned(
+            bottom: 24,
+            right: 24,
+            child: Builder(
+              builder: (context) => FloatingActionButton(
+                backgroundColor: _kSurface,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: const BorderSide(color: Colors.white10),
+                ),
+                onPressed: () => Scaffold.of(context).openEndDrawer(),
+                child: const Icon(Icons.tune),
+              ),
+            ),
+          ),
+      ],
+    );
+
+    return Scaffold(
+      backgroundColor: _kBackground,
+      endDrawer: isMobile
+          ? Drawer(
+              width: 320,
+              backgroundColor: _kSurface,
+              child: SafeArea(child: sidebarPanel),
+            )
+          : null,
+      body: isMobile
+          ? mapArea
+          : Row(
+              children: [
+                Container(
+                  width: 350,
+                  decoration: const BoxDecoration(
+                    color: _kSurface,
+                    border: Border(right: BorderSide(color: Colors.white10)),
+                  ),
+                  child: sidebarPanel,
+                ),
+                Expanded(child: mapArea),
+              ],
+            ),
     );
   }
 
