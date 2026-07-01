@@ -32,8 +32,17 @@ class GoogleMapsController implements MapViewController {
         w = min(w, latlng.longitude);
         e = max(e, latlng.longitude);
       }
+
+      // UPPI BRASIL - Para garantir que a rota fique visível na metade superior do mapa
+      // e não seja sobreposta pelo bottom sheet no mobile, estendemos o limite sul (south) da rota.
+      final double latDelta = n - s;
+      // Adicionamos uma margem sul proporcional à rota, com um mínimo de 0.012 graus (~1.3 km)
+      // para rotas curtas ou horizontais, evitando que o ponto de partida seja coberto pelo bottom sheet.
+      final double verticalShift = max(latDelta * 0.85, 0.012);
+      final double adjustedSouth = s - verticalShift;
+
       final bounds = LatLngBounds(
-        southwest: LatLng(s, w),
+        southwest: LatLng(adjustedSouth, w),
         northeast: LatLng(n, e),
       );
       print("UPPI BRASIL - GoogleMapsController fitBounds: southwest = LatLng(${bounds.southwest.latitude}, ${bounds.southwest.longitude}), northeast = LatLng(${bounds.northeast.latitude}, ${bounds.northeast.longitude})");
@@ -43,7 +52,7 @@ class GoogleMapsController implements MapViewController {
       await controller.animateCamera(
         CameraUpdate.newCameraPosition(
           CameraPosition(
-            target: LatLng((s + n) / 2, (w + e) / 2),
+            target: LatLng((adjustedSouth + n) / 2, (w + e) / 2),
             zoom: 12,
             tilt: 0.0,
             bearing: 0.0,
@@ -53,7 +62,7 @@ class GoogleMapsController implements MapViewController {
       
       print("UPPI BRASIL - GoogleMapsController fitBounds: map controller resolved. Calling animateCamera");
       await controller.animateCamera(
-        CameraUpdate.newLatLngBounds(bounds, 20),
+        CameraUpdate.newLatLngBounds(bounds, 40),
       );
       print("UPPI BRASIL - GoogleMapsController fitBounds: animateCamera completed successfully");
     } catch (e, stack) {
