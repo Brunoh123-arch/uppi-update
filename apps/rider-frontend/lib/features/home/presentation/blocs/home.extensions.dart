@@ -203,16 +203,15 @@ extension HomeStateX on HomeState {
 
   List<PolyLineLayer> get polylines => [
         if (_directions.isNotEmpty)
-          // Linha azul sólida (estilo modo claro)
+          // Linha com gradiente azul/verde-água (mesma cor e largura do passageiro/motorista)
           PolyLineLayer(
             points: _directions.map((e) => e.latLng).toList(),
-            width: 5,
-            color: const Color(0xFF4285F4),
-            gradientColors: const [],
+            width: 9,
+            gradientColors: const [Color(0xff2892FF), Color(0xff45FCDE)],
             strokeCap: StrokeCap.round,
             strokeJoin: StrokeJoin.round,
-            borderStrokeWidth: 2.0,
-            borderColor: const Color(0xFF1A73E8),
+            borderStrokeWidth: 3.0,
+            borderColor: const Color(0xFF1A56C4),
           ),
       ];
 }

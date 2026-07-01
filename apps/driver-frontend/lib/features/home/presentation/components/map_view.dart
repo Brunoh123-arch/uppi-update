@@ -1054,9 +1054,8 @@ class _HomeMapViewState extends State<HomeMapView> {
                             debugPrint('[MapView] polylines check — isOnTrip: $isOnTrip, hasNavRoute: $hasNavRoute, statePolylines: ${statePolylines.length}, statePolylines points: ${statePolylines.map((p) => p.points.length).toList()}');
                           }
                           if (hasNavRoute) {
-                              final routeColors = const <Color>[];
-                              final routeColor = const Color(0xFF4285F4);
-                              final routeBorderColor = const Color(0xFF1A73E8);
+                              final routeColors = const [Color(0xff2892FF), Color(0xff45FCDE)];
+                              final routeBorderColor = const Color(0xFF1A56C4);
                               final fullRoute = HomeNavigationOverlay.activeRouteNotifier.value;
                               final driverLoc = state.driverLocation;
 
@@ -1075,13 +1074,12 @@ class _HomeMapViewState extends State<HomeMapView> {
                                 final traveledPoints = fullRoute.sublist(0, driverIdx + 1);
                                 grayLine = PolyLineLayer(
                                   points: traveledPoints,
-                                  width: 5,
-                                  color: Colors.grey.withValues(alpha: 0.5),
-                                  gradientColors: const [],
+                                  width: 9,
+                                  gradientColors: [Colors.grey.withOpacity(0.5), Colors.grey.withOpacity(0.5)],
                                   strokeCap: StrokeCap.round,
                                   strokeJoin: StrokeJoin.round,
-                                  borderStrokeWidth: 2.0,
-                                  borderColor: Colors.grey.shade600.withValues(alpha: 0.5),
+                                  borderStrokeWidth: 3.0,
+                                  borderColor: Colors.grey.shade600.withOpacity(0.5),
                                 );
                                 remainingRoute = fullRoute.sublist(driverIdx);
                               }
@@ -1098,12 +1096,11 @@ class _HomeMapViewState extends State<HomeMapView> {
 
                               final blueLine = PolyLineLayer(
                                 points: remainingRoutePoints,
-                                width: 5,
-                                color: routeColor,
+                                width: 9,
                                 gradientColors: routeColors,
                                 strokeCap: StrokeCap.round,
                                 strokeJoin: StrokeJoin.round,
-                                borderStrokeWidth: 2.0,
+                                borderStrokeWidth: 3.0,
                                 borderColor: routeBorderColor,
                               );
 
@@ -1131,13 +1128,12 @@ class _HomeMapViewState extends State<HomeMapView> {
                                   }
                                   greenLine = PolyLineLayer(
                                     points: greenPoints,
-                                    width: 5,
+                                    width: 9,
                                     // Verde neon estilo 99 Motoristas
-                                    color: const Color(0xFF00E676),
-                                    gradientColors: const [],
+                                    gradientColors: const [Color(0xFF00E676), Color(0xFF00E676)],
                                     strokeCap: StrokeCap.round,
                                     strokeJoin: StrokeJoin.round,
-                                    borderStrokeWidth: 2.0,
+                                    borderStrokeWidth: 3.0,
                                     borderColor: const Color(0xFF00843D),
                                   );
                                 }
