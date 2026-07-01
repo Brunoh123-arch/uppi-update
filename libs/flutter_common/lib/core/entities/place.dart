@@ -45,6 +45,7 @@ extension LatLngEntityListX on List<LatLngEntity> {
   PolyLineLayer get toPolyLineLayer => PolyLineLayer(
     points: map((e) => e.latLng).toList(),
     width: 7,
+    color: const Color(0xff45FCDE),
     gradientColors: const [Color(0xff2892FF), Color(0xff45FCDE)],
     strokeCap: StrokeCap.round,
     strokeJoin: StrokeJoin.round,

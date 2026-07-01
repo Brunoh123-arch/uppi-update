@@ -184,6 +184,7 @@ class _RideHistoryDetailsScreenDesktopState
             PolyLineLayer(
               points: points,
               width: 7,
+              color: const Color(0xff45FCDE),
               gradientColors: const [Color(0xff2892FF), Color(0xff45FCDE)],
               strokeCap: StrokeCap.round,
               strokeJoin: StrokeJoin.round,
