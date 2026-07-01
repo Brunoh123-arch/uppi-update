@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:rider_flutter/core/entities/profile.dart';
 import 'package:rider_flutter/core/error/failure.dart';
 import 'package:flutter_common/core/enums/gender.dart';
+import 'package:flutter_common/core/entities/media.dart';
 
 import '../../domain/entities/verify_number_response.dart';
 import '../../domain/entities/verify_otp_response.dart';

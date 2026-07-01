@@ -8,22 +8,7 @@ import 'package:uppi_motorista/core/router/app_router.dart';
 class LoginGuard extends AutoRouteGuard {
   @override
   void onNavigation(NavigationResolver resolver, StackRouter router) {
-    if (kDebugMode) {
-      final authBloc = locator<AuthBloc>();
-      if (!authBloc.state.isAuthenticated) {
-        authBloc.onLoggedIn(
-          jwtToken: 'dev-bypass-driver-id',
-          profile: ProfileEntity.emptyProfile.copyWith(
-            firstName: 'Desenvolvedor',
-            lastName: 'Motorista',
-            number: '5599999999999',
-            email: 'dev-driver@uppi.app',
-          ),
-        );
-      }
-      resolver.next(true);
-      return;
-    }
+
 
     final loggedIn = locator<AuthBloc>().state.isAuthenticated;
     if (loggedIn) {

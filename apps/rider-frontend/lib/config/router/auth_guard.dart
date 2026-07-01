@@ -15,21 +15,7 @@ class AuthGuard extends AutoRouteGuard {
       unauthenticated: (unauth) => unauth.isGuest,
     );
 
-    if (kDebugMode) {
-      if (!authState.isAuthenticated && !isGuest) {
-        authBloc.onLoggedIn(
-          jwtToken: 'dev-bypass-user-id',
-          profile: ProfileEntity.emptyProfile.copyWith(
-            firstName: 'Desenvolvedor',
-            lastName: 'Passageiro',
-            number: '5599999999999',
-            email: 'dev@uppi.app',
-          ),
-        );
-      }
-      resolver.next(true);
-      return;
-    }
+
 
     final isAllowed = authState.isAuthenticated || isGuest;
     if (isAllowed) {
