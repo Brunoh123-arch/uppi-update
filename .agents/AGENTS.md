@@ -8,3 +8,5 @@
   - Sempre propor a execução desses comandos assim que a alteração for verificada e concluída.
 
 - **Execução do Flutter Run (Modo Live):** Ao executar o aplicativo em modo "live" ou depuração no celular via USB, utilize apenas o comando padrão `flutter run -d <device_id>`. Nunca tente criar scripts customizados de monitoramento de arquivos (file watcher/Node.js/PowerShell) para forçar o Hot Reload, pois o editor (VS Code) e o próprio Flutter já gerenciam isso nativamente de forma automática ao salvar os arquivos.
+
+- **Evitar Superengenharia e Alucinações:** O agente deve priorizar sempre as soluções mais simples, diretas e nativas do próprio framework. Não crie scripts adicionais ou ferramentas paralelas sem necessidade real. Evite propor complexidades desnecessárias ou inventar soluções de contorno para ferramentas oficiais estáveis (como o Flutter CLI e VS Code).
