@@ -138,7 +138,7 @@ extension HomeStateX on HomeState {
                     ],
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisSize.min,
+                    mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Icon(
@@ -236,7 +236,7 @@ extension HomeStateX on HomeState {
                       ],
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisSize.min,
+                      mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(
