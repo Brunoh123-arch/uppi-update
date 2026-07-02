@@ -109,7 +109,7 @@ extension HomeStateX on HomeState {
           if (value._directions.isNotEmpty) {
             markers.addAll(value._directions.directionsCapMarkers);
 
-            // Adicionar a badge de duração flutuando no meio da rota
+            // Adicionar a badge de duração flutuando no meio da rota (estilo pílula azul escura com ícone de relógio)
             final homeCubit = locator<HomeCubit>();
             final rawMin = (homeCubit.durationInSeconds / 60).round();
             final durationMin = rawMin > 0 ? rawMin : 1;
@@ -121,36 +121,42 @@ extension HomeStateX on HomeState {
               CustomMarker(
                 id: 'route_duration_badge',
                 position: middlePoint,
-                width: 80,
-                height: 35,
+                width: 85,
+                height: 32,
                 alignment: Alignment.center,
                 widget: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: const Color(0xFF0D5F7A),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+                        color: Colors.black.withOpacity(0.25),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
                       ),
                     ],
-                    border: Border.all(
-                      color: const Color(0xFF0D5F7A),
-                      width: 1.5,
-                    ),
                   ),
-                  child: Center(
-                    child: Text(
-                      "$durationMin min",
-                      style: const TextStyle(
-                        fontFamily: 'Outfit',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.black,
+                  child: Row(
+                    mainAxisAlignment: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.access_time_filled_rounded,
+                        color: Colors.white,
+                        size: 14,
                       ),
-                    ),
+                      const SizedBox(width: 4),
+                      Text(
+                        "$durationMin min",
+                        style: const TextStyle(
+                          fontFamily: 'Outfit',
+                          fontSize: 12.0,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -179,14 +185,14 @@ extension HomeStateX on HomeState {
           if (arrivedToWaypointIndex != null && arrivedToWaypointIndex >= 0) {
             markers.add(
               AppMarkerDropoff(
-                address: value.order.waypoints[arrivedToWaypointIndex + 1].address,
+                address: value.order.waypoints[arrivedToWaypointIndex + 1].address.split(',').first,
                 onTap: onTap,
               ).genericMarker(value.order.waypoints[arrivedToWaypointIndex + 1].latLng2),
             );
           } else {
             markers.add(
               AppMarkerPickup(
-                address: value.order.waypoints.first.address,
+                address: value.order.waypoints.first.address.split(',').first,
                 onTap: onTap,
               ).genericMarker(value.order.waypoints.first.latLng2),
             );
@@ -213,36 +219,42 @@ extension HomeStateX on HomeState {
                 CustomMarker(
                   id: 'route_duration_badge',
                   position: middlePoint,
-                  width: 80,
-                  height: 35,
+                  width: 85,
+                  height: 32,
                   alignment: Alignment.center,
                   widget: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color(0xFF0D5F7A),
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
+                          color: Colors.black.withOpacity(0.25),
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
                         ),
                       ],
-                      border: Border.all(
-                        color: const Color(0xFF0D5F7A),
-                        width: 1.5,
-                      ),
                     ),
-                    child: Center(
-                      child: Text(
-                        "$remainingMin min",
-                        style: const TextStyle(
-                          fontFamily: 'Outfit',
-                          fontSize: 12.0,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.black,
+                    child: Row(
+                      mainAxisAlignment: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.access_time_filled_rounded,
+                          color: Colors.white,
+                          size: 14,
                         ),
-                      ),
+                        const SizedBox(width: 4),
+                        Text(
+                          "$remainingMin min",
+                          style: const TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
