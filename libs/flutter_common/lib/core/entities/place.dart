@@ -43,16 +43,13 @@ extension LatLngEntityX on LatLngEntity {
 
 extension LatLngEntityListX on List<LatLngEntity> {
   PolyLineLayer get toPolyLineLayer => PolyLineLayer(
-    points: map((e) => e.latLng).toList(),
-    width: 5,
-    color: const Color(0xff2892FF),
-    gradientColors: const [
-      Color(0xff2892FF), // Azul brilhante (início / partida)
-      Color(0xff45FCDE), // Ciano / verde-água (fim / destino)
-    ],
-    strokeCap: StrokeCap.round,
-    strokeJoin: StrokeJoin.round,
-  );
+        points: map((e) => e.latLng).toList(),
+        width: 3,
+        gradientColors: const [
+          Color(0xff2892FF),
+          Color(0xff45FCDE),
+        ],
+      );
 
   List<CustomMarker> get directionsCapMarkers => [
     if (length > 1)

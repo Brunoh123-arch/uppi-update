@@ -225,17 +225,13 @@ extension HomeStateX on HomeState {
 
   List<PolyLineLayer> get polylines => [
         if (_directions.isNotEmpty)
-          // Linha estilo Ridy Taxi — gradiente azul → ciano
           PolyLineLayer(
             points: _directions.map((e) => e.latLng).toList(),
-            width: 5,
-            color: const Color(0xff2892FF),
+            width: 3,
             gradientColors: const [
               Color(0xff2892FF), // Azul brilhante (início / partida)
               Color(0xff45FCDE), // Ciano / verde-água (fim / destino)
             ],
-            strokeCap: StrokeCap.round,
-            strokeJoin: StrokeJoin.round,
           ),
       ];
 }
