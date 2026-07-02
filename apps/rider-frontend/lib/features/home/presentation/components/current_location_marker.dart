@@ -23,7 +23,7 @@ class _CurrentLocationMarkerState extends State<CurrentLocationMarker>
   late AnimationController _controller;
   late Animation<double> _animation;
   StreamSubscription<CompassEvent>? _compassSubscription;
-  double? _heading;
+  double _heading = 0.0;
 
   @override
   void initState() {
@@ -44,17 +44,28 @@ class _CurrentLocationMarkerState extends State<CurrentLocationMarker>
 
   void _initCompass() {
     try {
-      _compassSubscription = FlutterCompass.events?.listen((event) {
-        if (mounted && event.heading != null) {
-          setState(() {
-            // event.heading = rumo magnético em graus (0 = Norte)
-            // Normaliza heading caso venha negativo
-            _heading = (event.heading! + 360) % 360;
-          });
-        }
-      });
-    } catch (_) {
-      // Tratamento silencioso em ambientes onde a API de sensores não está disponível
+      final stream = FlutterCompass.events;
+      if (stream != null) {
+        _compassSubscription = stream.listen(
+          (CompassEvent event) {
+            final double? headingVal = event.headingForCameraMode ?? event.heading;
+            if (mounted && headingVal != null) {
+              final double normalized = (headingVal + 360) % 360;
+              // Só atualiza se a mudança for maior que 1 grau (evita jitter excessivo)
+              if ((normalized - _heading).abs() > 1.0) {
+                setState(() {
+                  _heading = normalized;
+                });
+              }
+            }
+          },
+          onError: (dynamic error) {
+            debugPrint('[CurrentLocationMarker] Erro no compass: $error');
+          },
+        );
+      }
+    } catch (e) {
+      debugPrint('[CurrentLocationMarker] Exceção ao iniciar compass: $e');
     }
   }
 
@@ -84,7 +95,7 @@ class _CurrentLocationMarkerState extends State<CurrentLocationMarker>
 
 class LocationMarkerPainter extends CustomPainter {
   final double pulseValue;
-  final double? heading;
+  final double heading;
 
   LocationMarkerPainter({
     required this.pulseValue,
@@ -104,36 +115,35 @@ class LocationMarkerPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, haloRadius, haloPaint);
 
-    // 2. Desenha o cone de direção usando o heading do compass
-    // No Flutter Canvas, 0 radianos aponta para a direita (Leste).
-    // O compass heading fornece 0° para o Norte, 90° para o Leste, 180° para o Sul, 270° para o Oeste.
-    // Para converter: subtraímos 90° para alinhar 0° (Norte) para o topo (Cima) do Canvas.
-    final double finalHeading = heading ?? 0.0;
-    final double directionAngle = (finalHeading - 90.0) * math.pi / 180.0;
-    const double sweepAngle = 50.0 * math.pi / 180.0; // 50 graus de abertura do leque
-    final double startAngle = directionAngle - (sweepAngle / 2);
+    // 2. Desenha o cone de direção rotacionado com base na bússola
+    // Graus magnéticos (heading): 0° = Norte (topo), 90° = Leste (direita), 180° = Sul (baixo), 270° = Oeste (esquerda)
+    // No Flutter Canvas drawArc: 0 radianos = Leste (direita).
+    // Para alinhar 0° magnético com o topo do canvas (Norte), subtraímos 90°.
+    final double directionRad = (heading - 90.0) * math.pi / 180.0;
+    const double sweepRad = 55.0 * math.pi / 180.0; // 55 graus de abertura do feixe
+    final double startRad = directionRad - (sweepRad / 2);
 
     final double coneRadius = maxConeRadius - 2;
     final Paint conePaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          ColorPalette.primary50.withValues(alpha: 0.45),
+          ColorPalette.primary50.withValues(alpha: 0.50),
           ColorPalette.primary50.withValues(alpha: 0.20),
           ColorPalette.primary50.withValues(alpha: 0.0),
         ],
-        stops: const [0.0, 0.7, 1.0],
+        stops: const [0.0, 0.65, 1.0],
       ).createShader(Rect.fromCircle(center: center, radius: coneRadius))
       ..style = PaintingStyle.fill;
 
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: coneRadius),
-      startAngle,
-      sweepAngle,
+      startRad,
+      sweepRad,
       true,
       conePaint,
     );
 
-    // 3. Sombra projetada do marcador
+    // 3. Sombra da bolinha
     final Path shadowPath = Path()
       ..addOval(Rect.fromCircle(center: center.translate(0, 1), radius: 8.5));
     canvas.drawShadow(shadowPath, Colors.black.withValues(alpha: 0.3), 3.0, true);
