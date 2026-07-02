@@ -44,16 +44,42 @@ extension LatLngEntityX on LatLngEntity {
 extension LatLngEntityListX on List<LatLngEntity> {
   PolyLineLayer get toPolyLineLayer => PolyLineLayer(
     points: map((e) => e.latLng).toList(),
-    width: 5,
-    color: const Color(0xFF33CCFF),
-    gradientColors: const [Color(0xFF33CCFF), Color(0xFF33CCFF)],
+    width: 3,
+    color: const Color(0xff2892FF),
+    gradientColors: const [
+      Color(0xff2892FF), // Azul brilhante (início / partida)
+      Color(0xff45FCDE), // Ciano / verde-água (fim / destino)
+    ],
     strokeCap: StrokeCap.round,
     strokeJoin: StrokeJoin.round,
-    borderStrokeWidth: 1.0,
-    borderColor: const Color(0xFF0D5F7A),
   );
 
-  List<CustomMarker> get directionsCapMarkers => const [];
+  List<CustomMarker> get directionsCapMarkers => [
+    if (length > 1)
+      CustomMarker(
+        position: first.latLng,
+        width: 10,
+        height: 10,
+        widget: Container(
+          decoration: const BoxDecoration(
+            color: Color(0xff2892FF),
+            shape: BoxShape.circle,
+          ),
+        ),
+      ),
+    if (length > 1)
+      CustomMarker(
+        position: last.latLng,
+        width: 10,
+        height: 10,
+        widget: Container(
+          decoration: const BoxDecoration(
+            color: Color(0xff45FCDE),
+            shape: BoxShape.circle,
+          ),
+        ),
+      ),
+  ];
 }
 
 extension PlaceEntityX on PlaceEntity {
