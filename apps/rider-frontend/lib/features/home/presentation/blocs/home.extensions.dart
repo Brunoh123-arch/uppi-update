@@ -72,8 +72,14 @@ extension HomeStateX on HomeState {
           final list = value.waypoints;
 
           if (list.isNotEmpty) {
+            final homeCubit = locator<HomeCubit>();
+            final hasRoute = homeCubit.durationInSeconds > 0;
+            final rawMin = (homeCubit.durationInSeconds / 60).round();
+            final durationMin = rawMin > 0 ? rawMin : 1;
+            final distanceKm = (homeCubit.distanceInMeters / 1000).toStringAsFixed(1).replaceAll('.', ',');
+
             final firstElement = list.first;
-            final pickupAddress = firstElement.address;
+            final pickupAddress = hasRoute ? "5 min ${firstElement.address}" : firstElement.address;
 
             markers.add(
               AppMarkerPickup(
@@ -84,7 +90,7 @@ extension HomeStateX on HomeState {
 
             if (list.length >= 2) {
               final lastElement = list.last;
-              final dropoffAddress = lastElement.address;
+              final dropoffAddress = hasRoute ? "$distanceKm km\n$durationMin min ${lastElement.address}" : lastElement.address;
               markers.add(
                 AppMarkerDropoff(
                   address: dropoffAddress,
@@ -130,16 +136,28 @@ extension HomeStateX on HomeState {
           }
           final arrivedToWaypointIndex = value.order.arrivedAtWaypointIndex;
           if (arrivedToWaypointIndex != null && arrivedToWaypointIndex >= 0) {
+            int? remainingMin;
+            final expectedAt = value.order.expectedAt;
+            remainingMin = expectedAt.difference(DateTime.now()).inMinutes;
+            final minutesStr = (remainingMin != null && remainingMin > 0) ? "$remainingMin min " : "";
+
             markers.add(
               AppMarkerDropoff(
-                address: value.order.waypoints[arrivedToWaypointIndex + 1].address,
+                address: "$minutesStr${value.order.waypoints[arrivedToWaypointIndex + 1].address}",
                 onTap: onTap,
               ).genericMarker(value.order.waypoints[arrivedToWaypointIndex + 1].latLng2),
             );
           } else {
+            int? remainingMin;
+            final etaPickup = value.order.etaPickup;
+            if (etaPickup != null) {
+              remainingMin = etaPickup.difference(DateTime.now()).inMinutes;
+            }
+            final minutesStr = (remainingMin != null && remainingMin > 0) ? "$remainingMin min " : "";
+
             markers.add(
               AppMarkerPickup(
-                address: value.order.waypoints.first.address,
+                address: "$minutesStr${value.order.waypoints.first.address}",
                 onTap: onTap,
               ).genericMarker(value.order.waypoints.first.latLng2),
             );
