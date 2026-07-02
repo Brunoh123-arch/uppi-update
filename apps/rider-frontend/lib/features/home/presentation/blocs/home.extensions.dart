@@ -227,7 +227,7 @@ extension HomeStateX on HomeState {
         if (_directions.isNotEmpty)
           PolyLineLayer(
             points: _directions.map((e) => e.latLng).toList(),
-            width: 3,
+            width: 6,
             gradientColors: const [
               Color(0xff2892FF), // Azul brilhante (início / partida)
               Color(0xff45FCDE), // Ciano / verde-água (fim / destino)

@@ -44,7 +44,7 @@ extension LatLngEntityX on LatLngEntity {
 extension LatLngEntityListX on List<LatLngEntity> {
   PolyLineLayer get toPolyLineLayer => PolyLineLayer(
         points: map((e) => e.latLng).toList(),
-        width: 3,
+        width: 6,
         gradientColors: const [
           Color(0xff2892FF),
           Color(0xff45FCDE),
