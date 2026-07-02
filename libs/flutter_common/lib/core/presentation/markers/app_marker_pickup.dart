@@ -69,7 +69,7 @@ class AppMarkerPickup extends StatelessWidget {
   }
 
   CustomMarker genericMarker(LatLng position) => CustomMarker(
-    id: 'pickup',
+    id: 'pickup_$address',
     position: position,
     width: AppMarker.width,
     height: AppMarker.height,

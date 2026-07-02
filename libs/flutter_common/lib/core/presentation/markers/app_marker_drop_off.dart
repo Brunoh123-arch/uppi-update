@@ -68,7 +68,7 @@ class AppMarkerDropoff extends StatelessWidget {
   }
 
   CustomMarker genericMarker(LatLng position) => CustomMarker(
-    id: 'dropoff',
+    id: 'dropoff_$address',
     position: position,
     width: AppMarker.width,
     height: AppMarker.height,

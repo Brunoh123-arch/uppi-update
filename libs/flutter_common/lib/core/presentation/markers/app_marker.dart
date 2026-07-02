@@ -110,7 +110,7 @@ class AppMarker extends StatelessWidget {
 
   Widget _buildCheckeredFlag() {
     return const Text(
-      "🏁",
+      "🇧🇷",
       style: TextStyle(fontSize: 22),
     );
   }
