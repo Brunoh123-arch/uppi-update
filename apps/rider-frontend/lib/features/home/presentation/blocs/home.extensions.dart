@@ -10,6 +10,7 @@ import 'package:flutter_common/core/blocs/settings.dart';
 import '../components/current_location_marker.dart';
 import 'package:flutter_common/core/presentation/markers/app_marker_pickup.dart';
 import 'package:flutter_common/core/presentation/markers/app_marker_drop_off.dart';
+import 'package:flutter_common/core/presentation/markers/app_marker_stop.dart';
 
 import 'home.dart';
 
