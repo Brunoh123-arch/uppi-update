@@ -39,12 +39,17 @@ class _CurrentLocationMarkerState extends State<CurrentLocationMarker>
       ),
     );
 
-    // Habilita e escuta a bússola real do dispositivo
+    _initCompass();
+  }
+
+  void _initCompass() {
     try {
       _compassSubscription = FlutterCompass.events?.listen((event) {
-        if (mounted) {
+        if (mounted && event.heading != null) {
           setState(() {
-            _heading = event.heading;
+            // event.heading = rumo magnético em graus (0 = Norte)
+            // Normaliza heading caso venha negativo
+            _heading = (event.heading! + 360) % 360;
           });
         }
       });
@@ -92,25 +97,28 @@ class LocationMarkerPainter extends CustomPainter {
     final double maxConeRadius = size.width / 2;
 
     // 1. Desenha o pulso de luz (halo)
-    final double haloRadius = 10.0 + (pulseValue * 15.0); // varia de 10 a 25
+    final double haloRadius = 10.0 + (pulseValue * 15.0);
     final double haloOpacity = 0.25 * (1.0 - pulseValue);
     final Paint haloPaint = Paint()
       ..color = ColorPalette.primary50.withValues(alpha: haloOpacity)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, haloRadius, haloPaint);
 
-    // 2. Desenha o cone de direção usando a bússola real
-    final double finalHeading = heading ?? 135.0;
+    // 2. Desenha o cone de direção usando o heading do compass
+    // No Flutter Canvas, 0 radianos aponta para a direita (Leste).
+    // O compass heading fornece 0° para o Norte, 90° para o Leste, 180° para o Sul, 270° para o Oeste.
+    // Para converter: subtraímos 90° para alinhar 0° (Norte) para o topo (Cima) do Canvas.
+    final double finalHeading = heading ?? 0.0;
     final double directionAngle = (finalHeading - 90.0) * math.pi / 180.0;
-    const double sweepAngle = 50.0 * math.pi / 180.0; // 50 graus de feixe de luz
+    const double sweepAngle = 50.0 * math.pi / 180.0; // 50 graus de abertura do leque
     final double startAngle = directionAngle - (sweepAngle / 2);
 
     final double coneRadius = maxConeRadius - 2;
     final Paint conePaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          ColorPalette.primary50.withValues(alpha: 0.35),
-          ColorPalette.primary50.withValues(alpha: 0.15),
+          ColorPalette.primary50.withValues(alpha: 0.45),
+          ColorPalette.primary50.withValues(alpha: 0.20),
           ColorPalette.primary50.withValues(alpha: 0.0),
         ],
         stops: const [0.0, 0.7, 1.0],
