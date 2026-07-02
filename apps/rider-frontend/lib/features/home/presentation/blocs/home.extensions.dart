@@ -114,59 +114,6 @@ extension HomeStateX on HomeState {
 
           if (value._directions.isNotEmpty) {
             markers.addAll(value._directions.directionsCapMarkers);
-
-            // Adicionar a badge de duração flutuando no meio da rota (estilo pílula azul escura com ícone de relógio)
-            final homeCubit = locator<HomeCubit>();
-            final rawMin = (homeCubit.durationInSeconds / 60).round();
-            final durationMin = rawMin > 0 ? rawMin : 1;
-
-            final middleIndex = value._directions.length ~/ 2;
-            final middlePoint = value._directions[middleIndex].latLng;
-
-            markers.add(
-              CustomMarker(
-                id: 'route_duration_badge',
-                position: middlePoint,
-                width: 85,
-                height: 32,
-                alignment: Alignment.center,
-                widget: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0D5F7A),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.25),
-                        blurRadius: 6,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.access_time_filled_rounded,
-                        color: Colors.white,
-                        size: 14,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        "$durationMin min",
-                        style: const TextStyle(
-                          fontFamily: 'Outfit',
-                          fontSize: 12.0,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
           }
           return markers;
         },
@@ -206,66 +153,6 @@ extension HomeStateX on HomeState {
 
           if (_directions.isNotEmpty) {
             markers.addAll(_directions.directionsCapMarkers);
-
-            int? remainingMin;
-            if (value.order.status == OrderStatus.driverAccepted) {
-              final etaPickup = value.order.etaPickup;
-              if (etaPickup != null) {
-                remainingMin = etaPickup.difference(DateTime.now()).inMinutes;
-              }
-            } else {
-              final expectedAt = value.order.expectedAt;
-              remainingMin = expectedAt.difference(DateTime.now()).inMinutes;
-            }
-
-            if (remainingMin != null && remainingMin > 0) {
-              final middleIndex = _directions.length ~/ 2;
-              final middlePoint = _directions[middleIndex].latLng;
-              markers.add(
-                CustomMarker(
-                  id: 'route_duration_badge',
-                  position: middlePoint,
-                  width: 85,
-                  height: 32,
-                  alignment: Alignment.center,
-                  widget: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0D5F7A),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.25),
-                          blurRadius: 6,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.access_time_filled_rounded,
-                          color: Colors.white,
-                          size: 14,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          "$remainingMin min",
-                          style: const TextStyle(
-                            fontFamily: 'Outfit',
-                            fontSize: 12.0,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }
           }
 
           return markers;
