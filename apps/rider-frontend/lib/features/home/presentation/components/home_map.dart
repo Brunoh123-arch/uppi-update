@@ -292,7 +292,7 @@ class _HomeMapState extends State<HomeMap> {
                         );
 
                         if (isMobile) {
-                          double topPadding = 80.0;
+                          double topPadding = 120.0;
                           double bottomPadding = bottomSheetHeight;
                           
                           final maxAllowedPadding = screenHeight - 120.0;
@@ -305,8 +305,8 @@ class _HomeMapState extends State<HomeMap> {
                           }
 
                           return EdgeInsets.only(
-                            left: 24,
-                            right: 24,
+                            left: 48,
+                            right: 48,
                             top: topPadding,
                             bottom: bottomPadding,
                           );
