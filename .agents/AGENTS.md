@@ -20,3 +20,10 @@
 - **Deploy na Play Store (Fastlane):** O deploy do app na Play Store é feito navegando até a pasta `apps/rider-frontend/android` e executando `fastlane beta`. O `versionCode` no arquivo `pubspec.yaml` do rider-frontend deve ser incrementado antes de cada nova build de deploy.
 
 - **Fluxo de Trabalho Git (Sincronização para Trabalho Remoto):** Sempre que concluir qualquer alteração solicitada, o agente deve propor e rodar os comandos `git add .`, `git commit -m "<tipo>: <mensagem em português>"` e `git push` para sincronizar o repositório remoto e permitir que o usuário trabalhe do escritório de forma transparente.
+
+- **Ciclo de Autoanálise e Qualidade Máxima (Loop de Correção):** Ao receber qualquer tarefa de desenvolvimento, depuração ou ajuste visual, o agente deve entrar em um ciclo interno de autoavaliação antes de dar o trabalho como concluído.
+  1. **Implementar:** Fazer a alteração no código de forma limpa.
+  2. **Verificar e Compilar:** Executar ou atualizar no dispositivo e analisar logs e erros.
+  3. **Autoanalisar:** Identificar pontos fortes, possíveis brechas, bugs de layout ou inconsistências no fluxo.
+  4. **Refinar:** Corrigir os pontos fracos identificados.
+  5. **Entrega Final:** Só reportar o resultado ao usuário quando tiver alcançado o nível máximo de qualidade possível.
