@@ -78,9 +78,7 @@ extension HomeStateX on HomeState {
             final distanceKm = "${(homeCubit.distanceInMeters / 1000).toStringAsFixed(1).replaceAll('.', ',')} km";
 
             final firstElement = list.first;
-            final pickupAddress = homeCubit.durationInSeconds > 0
-                ? "$durationMin min ${firstElement.address}"
-                : firstElement.address;
+            final pickupAddress = firstElement.address;
 
             markers.add(
               AppMarkerPickup(
@@ -92,7 +90,7 @@ extension HomeStateX on HomeState {
             if (list.length >= 2) {
               final lastElement = list.last;
               final dropoffAddress = (homeCubit.distanceInMeters > 0 && homeCubit.durationInSeconds > 0)
-                  ? "$distanceKm $durationMin min ${lastElement.address}"
+                  ? "$durationMin min de viagem"
                   : lastElement.address;
               markers.add(
                 AppMarkerDropoff(
