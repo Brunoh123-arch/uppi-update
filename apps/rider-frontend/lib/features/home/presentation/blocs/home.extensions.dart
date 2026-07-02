@@ -72,14 +72,8 @@ extension HomeStateX on HomeState {
           final list = value.waypoints;
 
           if (list.isNotEmpty) {
-            final homeCubit = locator<HomeCubit>();
-            final hasRoute = homeCubit.durationInSeconds > 0;
-            final rawMin = (homeCubit.durationInSeconds / 60).round();
-            final durationMin = rawMin > 0 ? rawMin : 1;
-            final distanceKm = (homeCubit.distanceInMeters / 1000).toStringAsFixed(1).replaceAll('.', ',');
-
             final firstElement = list.first;
-            final pickupAddress = hasRoute ? "5 min ${firstElement.address}" : firstElement.address;
+            final pickupAddress = firstElement.address;
 
             markers.add(
               AppMarkerPickup(
@@ -90,7 +84,7 @@ extension HomeStateX on HomeState {
 
             if (list.length >= 2) {
               final lastElement = list.last;
-              final dropoffAddress = hasRoute ? "$distanceKm km\n$durationMin min ${lastElement.address}" : lastElement.address;
+              final dropoffAddress = lastElement.address;
               markers.add(
                 AppMarkerDropoff(
                   address: dropoffAddress,
@@ -138,14 +132,14 @@ extension HomeStateX on HomeState {
           if (arrivedToWaypointIndex != null && arrivedToWaypointIndex >= 0) {
             markers.add(
               AppMarkerDropoff(
-                address: value.order.waypoints[arrivedToWaypointIndex + 1].address.split(',').first,
+                address: value.order.waypoints[arrivedToWaypointIndex + 1].address,
                 onTap: onTap,
               ).genericMarker(value.order.waypoints[arrivedToWaypointIndex + 1].latLng2),
             );
           } else {
             markers.add(
               AppMarkerPickup(
-                address: value.order.waypoints.first.address.split(',').first,
+                address: value.order.waypoints.first.address,
                 onTap: onTap,
               ).genericMarker(value.order.waypoints.first.latLng2),
             );
