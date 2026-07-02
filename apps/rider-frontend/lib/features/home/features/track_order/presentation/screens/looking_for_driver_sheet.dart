@@ -24,7 +24,9 @@ class LookingForDriverSheet extends StatefulWidget {
 
 class _LookingForDriverSheetState extends State<LookingForDriverSheet> {
   late Timer _textTimer;
+  late Timer _elapsedTimer;
   int _textStep = 0;
+  int _elapsedSeconds = 0;
 
   List<String> _getStatusTexts(BuildContext context) {
     if (Localizations.localeOf(context).languageCode == 'en') {
@@ -45,6 +47,12 @@ class _LookingForDriverSheetState extends State<LookingForDriverSheet> {
     ];
   }
 
+  String _formatDuration(int seconds) {
+    final minutes = (seconds / 60).floor();
+    final remainingSeconds = seconds % 60;
+    return "${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}";
+  }
+
   @override
   void initState() {
     super.initState();
@@ -56,11 +64,30 @@ class _LookingForDriverSheetState extends State<LookingForDriverSheet> {
         });
       }
     });
+
+    // Initialize elapsed seconds from the order creation time if available
+    final trackOrderBloc = locator<TrackOrderBloc>();
+    trackOrderBloc.state.maybeMap(
+      orderInProgres: (inProgress) {
+        final diff = DateTime.now().difference(inProgress.order.createdAt.toLocal()).inSeconds;
+        _elapsedSeconds = diff > 0 ? diff : 0;
+      },
+      orElse: () {},
+    );
+
+    _elapsedTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _elapsedSeconds++;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _textTimer.cancel();
+    _elapsedTimer.cancel();
     super.dispose();
   }
 
@@ -93,7 +120,42 @@ class _LookingForDriverSheetState extends State<LookingForDriverSheet> {
                 ),
               ),
               
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+
+              // Premium Cronômetro
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Ionicons.stopwatch_outline,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _formatDuration(_elapsedSeconds),
+                      style: context.titleMedium?.copyWith(
+                        fontFamily: 'monospace',
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
               
               // Reactive Gradual Status Text
               AnimatedSwitcher(

@@ -23,61 +23,67 @@ class AppMarker extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // ── Caixa branca principal (balão) ──────────────────────
+        // ── 1. Caixa branca principal (balão) ──────────────────────
         GestureDetector(
           onTap: onTap,
           child: Container(
             width: width,
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x1464748B), // sombra suave cinza
-                  offset: Offset(2, 4),
-                  blurRadius: 8,
+                  color: Color(0x2064748B), // sombra suave cinza
+                  offset: Offset(0, 4),
+                  blurRadius: 10,
                 ),
               ],
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.black12, width: 0.5),
             ),
             child: Row(
               children: [
-                // ── Ícone com borda e fundo colorido ──────────────
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: foregroundColor),
-                    color: backgroundColor,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: foregroundColor,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      iconData,
-                      color: const Color(0xFFFDFCFF), // branco puro
-                      size: 18,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // ── Texto do título/endereço ────────────────────
+                // Sem o ícone interno para liberar espaço e evitar overflow
                 Expanded(child: title),
               ],
             ),
           ),
         ),
-        // ── Triângulo embaixo (ponteiro do balão) ───────────────
+        // ── 2. Triângulo embaixo (ponteiro do balão apontando para a cabeça do pino) ──
         ClipPath(
           clipper: TriangleClipper(),
           child: Container(
             color: Colors.white,
-            height: 11,
-            width: 16,
+            height: 8,
+            width: 12,
           ),
+        ),
+        // ── 3. Cabeça do pino real no mapa (idêntico ao que estava no balão) ──
+        Container(
+          padding: const EdgeInsets.all(5),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            shape: BoxShape.circle,
+            border: Border.all(color: foregroundColor, width: 2.5),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black38,
+                blurRadius: 4,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Icon(
+            iconData,
+            color: foregroundColor,
+            size: 16,
+          ),
+        ),
+        // ── 4. Haste vertical fina (a agulha do pino que encosta no mapa) ──
+        Container(
+          width: 2.5,
+          height: 12,
+          color: foregroundColor,
         ),
       ],
     );
@@ -98,8 +104,8 @@ class AppMarker extends StatelessWidget {
 
   // Tamanho padrão do balão — usado ao criar CustomMarker
   static const double width = 240;
-  static const double height = 67;
-  static const Alignment alignment = Alignment.topCenter;
+  static const double height = 150;
+  static const Alignment alignment = Alignment.bottomCenter;
 
   static Widget buildBubbleContent(BuildContext context, String addressText, {VoidCallback? onTap}) {
     return Text(
