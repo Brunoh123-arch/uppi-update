@@ -97,17 +97,38 @@ class GoogleMapProvider
         ));
       }
       
-      // Linha principal do trajeto por cima (zIndex maior)
-      result.add(Polyline(
-        polylineId: PolylineId('${e.points.hashCode}_main'),
-        points: points,
-        color: e.color ?? (e.gradientColors.isNotEmpty ? e.gradientColors.first : Colors.blue),
-        width: e.width?.toInt() ?? 5,
-        startCap: Cap.roundCap,
-        endCap: Cap.roundCap,
-        jointType: JointType.round,
-        zIndex: 2,
-      ));
+      // Simula gradiente no Google Maps dividindo a rota em segmentos com cores interpoladas
+      if (e.gradientColors.length >= 2 && points.length >= 2) {
+        final colorStart = e.gradientColors.first;
+        final colorEnd = e.gradientColors.last;
+        final segmentCount = points.length - 1;
+        for (int i = 0; i < segmentCount; i++) {
+          final t = segmentCount == 1 ? 0.0 : i / (segmentCount - 1);
+          final segColor = Color.lerp(colorStart, colorEnd, t)!;
+          result.add(Polyline(
+            polylineId: PolylineId('${e.points.hashCode}_seg_$i'),
+            points: [points[i], points[i + 1]],
+            color: segColor,
+            width: e.width?.toInt() ?? 5,
+            startCap: Cap.roundCap,
+            endCap: Cap.roundCap,
+            jointType: JointType.round,
+            zIndex: 2,
+          ));
+        }
+      } else {
+        // Linha principal cor sólida
+        result.add(Polyline(
+          polylineId: PolylineId('${e.points.hashCode}_main'),
+          points: points,
+          color: e.color ?? (e.gradientColors.isNotEmpty ? e.gradientColors.first : Colors.blue),
+          width: e.width?.toInt() ?? 5,
+          startCap: Cap.roundCap,
+          endCap: Cap.roundCap,
+          jointType: JointType.round,
+          zIndex: 2,
+        ));
+      }
     }
     return result;
   }
