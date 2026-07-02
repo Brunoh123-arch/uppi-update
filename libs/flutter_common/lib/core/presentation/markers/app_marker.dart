@@ -113,6 +113,61 @@ class AppMarker extends StatelessWidget {
     );
   }
 
+  static Widget buildBubbleContent(BuildContext context, String addressText, {VoidCallback? onTap}) {
+    final match = RegExp(
+      r'^(\d+(?:[.,]\d+)?\s*(?:km|min|m|h)(?:\s+\/?\s*\d+(?:[.,]\d+)?\s*(?:km|min|m|h))*)\s+(.*)$',
+      caseSensitive: false,
+    ).firstMatch(addressText);
+
+    final metrics = match?.group(1);
+    final restAddress = match?.group(2) ?? addressText;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (metrics != null) ...[
+          Text(
+            metrics.replaceAll('\n', ' \n '),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 12.0,
+              fontWeight: FontWeight.w900,
+              color: Colors.black,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            width: 1,
+            height: 24,
+            color: Colors.grey.shade300,
+          ),
+          const SizedBox(width: 8),
+        ],
+        Expanded(
+          child: Text(
+            restAddress.split(',').first,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 12.0,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+        if (onTap != null) ...[
+          const SizedBox(width: 6),
+          const Icon(
+            Icons.edit_outlined,
+            color: Colors.black54,
+            size: 14,
+          ),
+        ],
+      ],
+    );
+  }
+
   Color get foregroundColor {
     switch (color) {
       case MarkerColor.green:

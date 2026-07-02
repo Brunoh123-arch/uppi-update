@@ -17,20 +17,7 @@ class AppMarkerPickup extends StatelessWidget {
       color: MarkerColor.green,
       icon: MarkerIcon.locate,
       onTap: onTap,
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            Localizations.of<S>(context, S)?.pickupPoint ?? "Ponto de partida",
-            style: TextStyle(
-              fontSize: 13.0,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade600,
-            ),
-          ),
-          _buildAddressText(context, address),
-        ],
-      ),
+      title: AppMarker.buildBubbleContent(context, address, onTap: onTap),
     );
   }
 

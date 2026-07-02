@@ -16,20 +16,7 @@ class AppMarkerDropoff extends StatelessWidget {
       color: MarkerColor.black,
       icon: MarkerIcon.location,
       onTap: onTap,
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            "Destino",
-            style: TextStyle(
-              fontSize: 13.0,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade600,
-            ),
-          ),
-          _buildAddressText(context, address),
-        ],
-      ),
+      title: AppMarker.buildBubbleContent(context, address, onTap: onTap),
     );
   }
 
