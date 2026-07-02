@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:generic_map/generic_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:flutter_common/core/extensions/extensions.dart';
 import 'package:flutter_common/core/presentation/markers/app_marker.dart';
 
 class AppMarkerDropoff extends StatelessWidget {
@@ -13,73 +12,41 @@ class AppMarkerDropoff extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppMarker(
-      color: MarkerColor.black,
-      icon: MarkerIcon.location,
+      color: MarkerColor.green,       // ← verde/ciano
+      icon: MarkerIcon.location,     // ícone de pin de localização
       onTap: onTap,
-      title: AppMarker.buildBubbleContent(context, address, onTap: onTap),
-    );
-  }
-
-  Widget _buildAddressText(BuildContext context, String addressText) {
-    final match = RegExp(
-      r'^(\d+(?:[.,]\d+)?\s*(?:km|min|m|h)(?:\s+\d+(?:[.,]\d+)?\s*(?:km|min|m|h))*)\s+(.*)$',
-      caseSensitive: false,
-    ).firstMatch(addressText);
-
-    if (match != null) {
-      final metrics = match.group(1) ?? '';
-      final rest = match.group(2) ?? '';
-      return Text.rich(
-        TextSpan(
-          children: [
-            TextSpan(
-              text: '$metrics ',
-              style: const TextStyle(
-                fontSize: 14.0,
-                fontWeight: FontWeight.w800,
-                color: Colors.black,
-              ),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            "Destination",            // título do balão de destino
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
+          Text(
+            address,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-            TextSpan(
-              text: rest,
-              style: TextStyle(
-                fontSize: 13.0,
-                fontWeight: FontWeight.w500,
-                color: context.theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      );
-    }
-
-    return Text(
-      addressText,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: TextStyle(
-        fontSize: 13.0,
-        fontWeight: FontWeight.w500,
-        color: context.theme.colorScheme.onSurfaceVariant,
+          ),
+        ],
       ),
     );
   }
 
   CustomMarker genericMarker(LatLng position) => CustomMarker(
-    id: 'dropoff_$address',
-    position: position,
-    width: AppMarker.width,
-    height: AppMarker.height,
-    alignment: AppMarker.alignment,
-    widget: this,
-    onTap: onTap,
-  );
+        id: 'dropoff_$address',
+        position: position,
+        width: AppMarker.width,
+        height: AppMarker.height,
+        alignment: AppMarker.alignment,
+        widget: this,
+        onTap: onTap,
+      );
 
   CenterMarker get centerMarker => CenterMarker(
-    widget: this,
-    size: const Size(AppMarker.width, AppMarker.height),
-    alignment: AppMarker.alignment,
-  );
+        widget: this,
+        size: const Size(AppMarker.width, AppMarker.height),
+        alignment: AppMarker.alignment,
+      );
 }

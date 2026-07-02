@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:generic_map/generic_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:flutter_common/core/extensions/extensions.dart';
 import 'package:flutter_common/core/presentation/markers/app_marker.dart';
 
 class AppMarkerAddresss extends StatelessWidget {
@@ -24,35 +23,26 @@ class AppMarkerAddresss extends StatelessWidget {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: context.labelMedium,
-            overflow: TextOverflow.ellipsis,
-          ),
-          Text(
-            address,
-            overflow: TextOverflow.ellipsis,
-            style: context.bodyMedium?.copyWith(
-              color: context.theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
+          Text(title, style: Theme.of(context).textTheme.labelMedium,
+              overflow: TextOverflow.ellipsis),
+          Text(address,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              )),
         ],
       ),
     );
   }
 
   CustomMarker genericMarker(LatLng position) => CustomMarker(
-    position: position,
-    width: AppMarker.width,
-    height: AppMarker.height,
-    alignment: AppMarker.alignment,
-    widget: this,
-    onTap: onTap,
-  );
+        position: position, width: AppMarker.width,
+        height: AppMarker.height, alignment: AppMarker.alignment, widget: this,
+        onTap: onTap,
+      );
 
   CenterMarker get centerMarker => CenterMarker(
-    widget: this,
-    size: const Size(AppMarker.width, AppMarker.height),
-    alignment: AppMarker.alignment,
-  );
+        widget: this, size: const Size(AppMarker.width, AppMarker.height),
+        alignment: AppMarker.alignment,
+      );
 }

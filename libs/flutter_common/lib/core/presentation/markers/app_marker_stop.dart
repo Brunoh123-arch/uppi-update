@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:generic_map/generic_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:flutter_common/core/extensions/extensions.dart';
 import 'package:flutter_common/core/presentation/markers/app_marker.dart';
 
 class AppMarkerStop extends StatelessWidget {
   final String address;
-  final int stopIndex;
+  final int stopIndex; // número da parada (1, 2, 3...)
   final VoidCallback? onTap;
 
   const AppMarkerStop({
@@ -19,18 +18,21 @@ class AppMarkerStop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppMarker(
-      color: MarkerColor.blue,
+      color: MarkerColor.green,
       icon: MarkerIcon.location,
       onTap: onTap,
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text("Stop ${stopIndex}", style: context.labelMedium),
+          Text(
+            "Stop $stopIndex",
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
           Text(
             address,
             overflow: TextOverflow.ellipsis,
-            style: context.bodyMedium?.copyWith(
-              color: context.theme.colorScheme.onSurfaceVariant,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ],
@@ -39,17 +41,17 @@ class AppMarkerStop extends StatelessWidget {
   }
 
   CustomMarker genericMarker(LatLng position) => CustomMarker(
-    position: position,
-    width: AppMarker.width,
-    height: AppMarker.height,
-    alignment: AppMarker.alignment,
-    widget: this,
-    onTap: onTap,
-  );
+        position: position,
+        width: AppMarker.width,
+        height: AppMarker.height,
+        alignment: AppMarker.alignment,
+        widget: this,
+        onTap: onTap,
+      );
 
   CenterMarker get centerMarker => CenterMarker(
-    widget: this,
-    size: const Size(AppMarker.width, AppMarker.height),
-    alignment: AppMarker.alignment,
-  );
+        widget: this,
+        size: const Size(AppMarker.width, AppMarker.height),
+        alignment: AppMarker.alignment,
+      );
 }

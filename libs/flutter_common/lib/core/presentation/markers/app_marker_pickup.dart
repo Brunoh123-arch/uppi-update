@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:generic_map/generic_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:flutter_common/core/extensions/extensions.dart';
 import 'package:flutter_common/core/presentation/markers/app_marker.dart';
-import 'package:flutter_common/l10n/messages.dart';
 
 class AppMarkerPickup extends StatelessWidget {
   final String address;
@@ -14,73 +12,44 @@ class AppMarkerPickup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppMarker(
-      color: MarkerColor.green,
-      icon: MarkerIcon.locate,
+      icon: MarkerIcon.locate,        // ícone de localização atual
       onTap: onTap,
-      title: AppMarker.buildBubbleContent(context, address, onTap: onTap),
-    );
-  }
-
-  Widget _buildAddressText(BuildContext context, String addressText) {
-    final match = RegExp(
-      r'^(\d+(?:[.,]\d+)?\s*(?:km|min|m|h)(?:\s+\d+(?:[.,]\d+)?\s*(?:km|min|m|h))*)\s+(.*)$',
-      caseSensitive: false,
-    ).firstMatch(addressText);
-
-    if (match != null) {
-      final metrics = match.group(1) ?? '';
-      final rest = match.group(2) ?? '';
-      return Text.rich(
-        TextSpan(
-          children: [
-            TextSpan(
-              text: '$metrics ',
-              style: const TextStyle(
-                fontSize: 14.0,
-                fontWeight: FontWeight.w800,
-                color: Colors.black,
-              ),
+      // color padrão = MarkerColor.blue (azul)
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Pick-up point",           // título do balão de partida
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
+          Text(
+            address,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-            TextSpan(
-              text: rest,
-              style: TextStyle(
-                fontSize: 13.0,
-                fontWeight: FontWeight.w500,
-                color: context.theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      );
-    }
-
-    return Text(
-      addressText,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: TextStyle(
-        fontSize: 13.0,
-        fontWeight: FontWeight.w500,
-        color: context.theme.colorScheme.onSurfaceVariant,
+          ),
+        ],
       ),
     );
   }
 
+  // Cria um CustomMarker posicionado no mapa
   CustomMarker genericMarker(LatLng position) => CustomMarker(
-    id: 'pickup_$address',
-    position: position,
-    width: AppMarker.width,
-    height: AppMarker.height,
-    alignment: AppMarker.alignment,
-    widget: this,
-    onTap: onTap,
-  );
+        id: 'pickup_$address',
+        position: position,
+        width: AppMarker.width,
+        height: AppMarker.height,
+        alignment: AppMarker.alignment,
+        widget: this,
+        onTap: onTap,
+      );
 
+  // Cria um CenterMarker (marcador central — arrastável)
   CenterMarker get centerMarker => CenterMarker(
-    widget: this,
-    size: const Size(AppMarker.width, AppMarker.height),
-    alignment: AppMarker.alignment,
-  );
+        widget: this,
+        size: const Size(AppMarker.width, AppMarker.height),
+        alignment: AppMarker.alignment,
+      );
 }

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-export 'app_marker_address.dart';
-export 'app_marker_address_null.dart';
-export 'app_marker_drop_off.dart';
-export 'app_marker_pickup.dart';
-export 'app_marker_stop.dart';
+import 'package:ionicons/ionicons.dart';
+
+enum MarkerColor { blue, green }
+enum MarkerIcon { location, locate }
 
 class AppMarker extends StatelessWidget {
   final Widget title;
@@ -14,188 +13,119 @@ class AppMarker extends StatelessWidget {
   const AppMarker({
     super.key,
     required this.title,
-    this.color = MarkerColor.blue,
-    this.icon = MarkerIcon.locate,
+    this.color = MarkerColor.blue,   // azul = partida, verde = destino/parada
+    this.icon = MarkerIcon.locate,  // locate = partida, location = destino/parada
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
-      height: height,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Haste do alfinete (agulha metálica cinza/preta fina conectada ao chão)
-          Positioned(
-            bottom: 0,
-            left: (width - 2) / 2, // Centraliza a agulha de 2px de largura no bloco de width
-            child: Container(
-              width: 2,
-              height: 14,
-              decoration: BoxDecoration(
-                color: const Color(0xFF4A4A4A), // Cinza chumbo metálico
-                borderRadius: BorderRadius.circular(1),
-              ),
-            ),
-          ),
-          // Cabeça do alfinete (círculo com borda colorida e centro colorido)
-          Positioned(
-            bottom: 12, // 14 (haste) - 2 (sobreposição)
-            left: (width - 22) / 2, // Centraliza a cabeça circular de 22px
-            child: Container(
-              width: 22,
-              height: 22,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: foregroundColor,
-                  width: 5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Container(
-                  width: 4,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: foregroundColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          // Card flutuante com endereço e lápis
-          Positioned(
-            bottom: 38, // Acima da cabeça do alfinete
-            left: (width - cardWidth) / 2,
-            child: GestureDetector(
-              onTap: onTap,
-              child: Container(
-                width: cardWidth,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Colors.grey.shade300,
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 6,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: title,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static Widget buildBubbleContent(BuildContext context, String addressText, {VoidCallback? onTap}) {
-    final match = RegExp(
-      r'^(\d+(?:[.,]\d+)?\s*(?:km|min|m|h)(?:\s+\/?\s*\d+(?:[.,]\d+)?\s*(?:km|min|m|h))*)\s+(.*)$',
-      caseSensitive: false,
-    ).firstMatch(addressText);
-
-    final metrics = match?.group(1);
-    final restAddress = match?.group(2) ?? addressText;
-
-    return Row(
+    return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (metrics != null) ...[
-          Text(
-            metrics.replaceAll('\n', ' \n '),
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 12.0,
-              fontWeight: FontWeight.w900,
-              color: Colors.black,
-              height: 1.1,
+        // ── Caixa branca principal (balão) ──────────────────────
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: width,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1464748B), // sombra suave cinza
+                  offset: Offset(2, 4),
+                  blurRadius: 8,
+                ),
+              ],
+              borderRadius: BorderRadius.circular(12),
             ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            width: 1,
-            height: 24,
-            color: Colors.grey.shade300,
-          ),
-          const SizedBox(width: 8),
-        ],
-        Expanded(
-          child: Text(
-            restAddress.split(',').first,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 12.0,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
+            child: Row(
+              children: [
+                // ── Ícone com borda e fundo colorido ──────────────
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: foregroundColor),
+                    color: backgroundColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: foregroundColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      iconData,
+                      color: const Color(0xFFFDFCFF), // branco puro
+                      size: 18,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // ── Texto do título/endereço ────────────────────
+                Expanded(child: title),
+              ],
             ),
           ),
         ),
-        if (onTap != null) ...[
-          const SizedBox(width: 6),
-          const Icon(
-            Icons.edit_outlined,
-            color: Colors.black54,
-            size: 14,
+        // ── Triângulo embaixo (ponteiro do balão) ───────────────
+        ClipPath(
+          clipper: TriangleClipper(),
+          child: Container(
+            color: Colors.white,
+            height: 11,
+            width: 16,
           ),
-        ],
+        ),
       ],
     );
   }
 
-  Color get foregroundColor {
-    switch (color) {
-      case MarkerColor.green:
-        return const Color(0xFF2E7D32); // Beautiful Green (Pickup)
-      case MarkerColor.black:
-        return const Color(0xFFD32F2F); // Beautiful Red (Destination/Dropoff)
-      case MarkerColor.blue:
-        return const Color(0xFF1976D2); // Beautiful Blue (Stop)
-    }
-  }
+  // Cor do ícone e borda: azul para partida, ciano para destino/parada
+  Color get foregroundColor => color == MarkerColor.green
+      ? const Color(0xFF00E2C5)  // tertiary60 — ciano
+      : const Color(0xFF096EFF); // primary50  — azul
 
-  Color get backgroundColor {
-    switch (color) {
-      case MarkerColor.green:
-        return const Color(0xFFE2F9EB);
-      case MarkerColor.black:
-        return const Color(0xFFFFEBEE);
-      case MarkerColor.blue:
-        return const Color(0xFFE3F2FD);
-    }
-  }
+  // Cor de fundo do ícone: mais clara que a foreground
+  Color get backgroundColor => color == MarkerColor.green
+      ? const Color(0xFFC0FFF8)  // tertiary95 — ciano claro
+      : const Color(0xFFABCCFB); // primary80  — azul claro
 
-  static const double width = 250;
-  static const double height = 100;
-  static const double cardWidth = 230;
-  static const Alignment alignment = Alignment.bottomCenter;
+  IconData get iconData =>
+      icon == MarkerIcon.location ? Ionicons.location : Ionicons.locate;
+
+  // Tamanho padrão do balão — usado ao criar CustomMarker
+  static const double width = 240;
+  static const double height = 67;
+  static const Alignment alignment = Alignment.topCenter;
+
+  static Widget buildBubbleContent(BuildContext context, String addressText, {VoidCallback? onTap}) {
+    return Text(
+      addressText,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: const TextStyle(
+        fontSize: 13.0,
+        fontWeight: FontWeight.w500,
+        color: Colors.black87,
+      ),
+    );
+  }
 }
 
-enum MarkerColor { blue, green, black }
+// Clipper do triângulo inferior do balão
+class TriangleClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(size.width, 0.0);
+    path.lineTo(size.width / 2, size.height);
+    path.close();
+    return path;
+  }
 
-enum MarkerIcon { location, locate }
+  @override
+  bool shouldReclip(TriangleClipper oldClipper) => false;
+}
