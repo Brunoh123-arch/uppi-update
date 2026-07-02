@@ -190,9 +190,9 @@ class AppMarker extends StatelessWidget {
     }
   }
 
-  static const double width = 250;
-  static const double height = 100;
-  static const double cardWidth = 230;
+  static const double width = 280;
+  static const double height = 110;
+  static const double cardWidth = 260;
   static const Alignment alignment = Alignment.bottomCenter;
 }
 
