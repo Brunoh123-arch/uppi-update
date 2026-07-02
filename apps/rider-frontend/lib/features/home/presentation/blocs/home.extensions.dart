@@ -72,8 +72,14 @@ extension HomeStateX on HomeState {
           final list = value.waypoints;
 
           if (list.isNotEmpty) {
+            final homeCubit = locator<HomeCubit>();
+            final hasRoute = homeCubit.durationInSeconds > 0;
+            final rawMin = (homeCubit.durationInSeconds / 60).round();
+            final durationMin = rawMin > 0 ? rawMin : 1;
+            final distanceKm = (homeCubit.distanceInMeters / 1000).toStringAsFixed(1).replaceAll('.', ',');
+
             final firstElement = list.first;
-            final pickupAddress = firstElement.address;
+            final pickupAddress = hasRoute ? "5 min ${firstElement.address}" : firstElement.address;
 
             markers.add(
               AppMarkerPickup(
@@ -84,7 +90,7 @@ extension HomeStateX on HomeState {
 
             if (list.length >= 2) {
               final lastElement = list.last;
-              final dropoffAddress = lastElement.address;
+              final dropoffAddress = hasRoute ? "$distanceKm km\n$durationMin min ${lastElement.address}" : lastElement.address;
               markers.add(
                 AppMarkerDropoff(
                   address: dropoffAddress,
