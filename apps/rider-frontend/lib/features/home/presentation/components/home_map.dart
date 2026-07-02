@@ -255,6 +255,7 @@ class _HomeMapState extends State<HomeMap> {
             final isDarkMode = settingsState.themeMode == ThemeMode.dark ||
                 (settingsState.themeMode == ThemeMode.system &&
                     MediaQuery.of(context).platformBrightness == Brightness.dark);
+            final forceLightMode = settingsState.themeMode == ThemeMode.light;
             return Stack(
               children: [
                 Positioned.fill(
@@ -438,6 +439,8 @@ class _HomeMapState extends State<HomeMap> {
                       initialLocation: state.waypoints.firstOrNull?.toGenericMapPlace ??
                           Constants.defaultLocation.toGenericMapPlace,
                       myLocationEnabled: false,
+                      isDarkMode: isDarkMode,
+                      forceLightMode: forceLightMode,
                     ),
                   ),
                 ),

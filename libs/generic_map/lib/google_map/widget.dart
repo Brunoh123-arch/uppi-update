@@ -68,6 +68,7 @@ class GoogleMapView extends StatefulWidget {
   final bool myLocationEnabled;
   final bool animateMarkers;
   final bool isDarkMode;
+  final bool forceLightMode;
 
   const GoogleMapView({
     super.key,
@@ -86,6 +87,7 @@ class GoogleMapView extends StatefulWidget {
     required this.myLocationEnabled,
     this.animateMarkers = true,
     this.isDarkMode = false,
+    this.forceLightMode = false,
   });
 
 
@@ -225,7 +227,8 @@ class _GoogleMapMapViewState extends State<GoogleMapView>
         _parsedPolylines = widget.provider.parsePolyLines(widget.polylines).toSet();
       });
     }
-    if (widget.isDarkMode != oldWidget.isDarkMode) {
+    if (widget.isDarkMode != oldWidget.isDarkMode ||
+        widget.forceLightMode != oldWidget.forceLightMode) {
       controller.mapController.future.then((gmController) {
         _applyMapStyle(gmController);
       });
@@ -300,15 +303,17 @@ class _GoogleMapMapViewState extends State<GoogleMapView>
       ..forward();
   }
 
-  /// Apply map style based on active app theme brightness or night time.
   void _applyMapStyle(GoogleMapController gmController) {
-    // Modo noturno automático ou manual baseado em isDarkMode
+    if (widget.forceLightMode) {
+      gmController.setMapStyle(_lightMapStyle);
+      return;
+    }
     final hour = DateTime.now().hour;
     final isNight = hour >= 18 || hour < 5;
     if (widget.isDarkMode || isNight) {
       gmController.setMapStyle(_darkMapStyle);
     } else {
-      gmController.setMapStyle(_lightMapStyle); // Desabilita POIs clicáveis no modo diurno
+      gmController.setMapStyle(_lightMapStyle);
     }
   }
 

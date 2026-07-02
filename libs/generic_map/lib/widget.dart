@@ -32,6 +32,7 @@ class GenericMap extends StatefulWidget {
   final bool myLocationEnabled;
   final bool animateMarkers;
   final bool isDarkMode;
+  final bool forceLightMode;
 
   GenericMap({
     super.key,
@@ -55,6 +56,7 @@ class GenericMap extends StatefulWidget {
     this.myLocationEnabled = true,
     this.animateMarkers = true,
     this.isDarkMode = false,
+    this.forceLightMode = false,
   }) {
     assert(
       mode == MapViewMode.picker && centerMarkerBuilder != null ||
@@ -136,6 +138,7 @@ class _GenericMapState extends State<GenericMap> with TickerProviderStateMixin {
                   myLocationEnabled: widget.myLocationEnabled,
                   animateMarkers: widget.animateMarkers,
                   isDarkMode: widget.isDarkMode,
+                  forceLightMode: widget.forceLightMode,
                   onMapMoved: (fullLocation) {
                     widget.onMapMoved?.call(fullLocation);
                     setState(() {

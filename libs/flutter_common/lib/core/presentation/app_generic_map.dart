@@ -22,6 +22,7 @@ class AppGenericMap extends StatelessWidget {
   final bool myLocationEnabled;
   final bool animateMarkers;
   final bool isDarkMode;
+  final bool forceLightMode;
 
   const AppGenericMap({
     super.key,
@@ -40,6 +41,7 @@ class AppGenericMap extends StatelessWidget {
     this.myLocationEnabled = true,
     this.animateMarkers = true,
     this.isDarkMode = false,
+    this.forceLightMode = false,
   });
 
   @override
@@ -60,6 +62,7 @@ class AppGenericMap extends StatelessWidget {
       myLocationEnabled: myLocationEnabled,
       animateMarkers: animateMarkers,
       isDarkMode: isDarkMode,
+      forceLightMode: forceLightMode,
     );
   }
 }
