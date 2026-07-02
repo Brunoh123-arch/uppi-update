@@ -22,6 +22,8 @@ class AppGenericMap extends StatelessWidget {
   final List<CircleMarker> circleMarkers;
   final EdgeInsets padding;
   final bool myLocationEnabled;
+  final bool isDarkMode;
+  final bool forceLightMode;
 
   const AppGenericMap({
     super.key,
@@ -38,6 +40,8 @@ class AppGenericMap extends StatelessWidget {
     this.addressResolver,
     this.circleMarkers = const [],
     this.myLocationEnabled = true,
+    this.isDarkMode = false,
+    this.forceLightMode = false,
   });
 
   @override
@@ -57,7 +61,8 @@ class AppGenericMap extends StatelessWidget {
         circleMarkers: circleMarkers,
         padding: padding,
         myLocationEnabled: myLocationEnabled,
-        isDarkMode: false,
+        isDarkMode: isDarkMode,
+        forceLightMode: forceLightMode,
       );
     }
     return BlocBuilder<SettingsCubit, SettingsState>(
@@ -83,6 +88,7 @@ class AppGenericMap extends StatelessWidget {
           padding: padding,
           myLocationEnabled: myLocationEnabled,
           isDarkMode: isDarkMode,
+          forceLightMode: forceLightMode,
         );
       },
     );
