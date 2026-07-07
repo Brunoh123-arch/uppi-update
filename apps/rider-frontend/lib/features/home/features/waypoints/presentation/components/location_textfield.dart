@@ -236,13 +236,12 @@ class _LocationTextfieldState extends State<LocationTextfield> {
                             : const SizedBox.shrink(),
                         ),
                       ),
-                      if (isFocused)
-                        Container(
-                          width: 1,
-                          height: 20,
-                          margin: const EdgeInsets.symmetric(horizontal: 6),
-                          color: isDark ? Colors.white24 : Colors.black12,
-                        ),
+                      Container(
+                        width: 1,
+                        height: 20,
+                        margin: const EdgeInsets.symmetric(horizontal: 6),
+                        color: isDark ? Colors.white24 : Colors.black12,
+                      ),
                       CupertinoButton(
                         padding: const EdgeInsets.symmetric(vertical: 2),
                         onPressed: () {
