@@ -140,9 +140,9 @@ class _HomeScreenMobileState extends State<HomeScreenMobile> {
                   debugPrint('UPPI BRASIL - backButton pressed orElse. State: ${locator<HomeCubit>().state}');
                 },
                 ridePreview: (value) {
-                  debugPrint('UPPI BRASIL - backButton pressed: ridePreview, returning to welcome.');
-                  locator<HomeCubit>().initializeWelcome(
-                    pickupPoint: value.waypoints.firstOrNull ?? locator<LocationCubit>().state.place,
+                  debugPrint('UPPI BRASIL - backButton pressed: ridePreview, returning to waypoints (Sua rota).');
+                  locator<HomeCubit>().showWaypoints(
+                    waypoints: value.waypoints,
                   );
                 },
                 confirmLocation: (value) {
