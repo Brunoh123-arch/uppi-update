@@ -192,63 +192,6 @@ class _LocationTextfieldState extends State<LocationTextfield> {
                               color: ColorPalette.neutralVariant70,
                               fontWeight: FontWeight.w400,
                             ),
-                            suffix: Transform.translate(
-                              offset: const Offset(0, 0),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // Botão de Limpar com Escala e Opacidade Animadas (Mola)
-                                  AnimatedOpacity(
-                                    duration: const Duration(milliseconds: 200),
-                                    opacity: showClearButton ? 1.0 : 0.0,
-                                    child: AnimatedScale(
-                                      duration: const Duration(milliseconds: 300),
-                                      scale: showClearButton ? 1.0 : 0.0,
-                                      curve: Curves.easeOutBack,
-                                      child: showClearButton 
-                                        ? CupertinoButton(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                            onPressed: () {
-                                              UppiHaptics.selection();
-                                              _controller.clear();
-                                              widget.onChanged(null);
-                                              setState(() {
-                                                value = '';
-                                              });
-                                            },
-                                            minimumSize: Size.zero,
-                                            child: const Icon(
-                                              Ionicons.close_circle,
-                                              size: 18,
-                                              color: ColorPalette.neutralVariant80,
-                                            ),
-                                          )
-                                        : const SizedBox.shrink(),
-                                    ),
-                                  ),
-                                  if (isFocused)
-                                    Container(
-                                      width: 1,
-                                      height: 20,
-                                      margin: const EdgeInsets.symmetric(horizontal: 6),
-                                      color: isDark ? Colors.white24 : Colors.black12,
-                                    ),
-                                  CupertinoButton(
-                                    padding: const EdgeInsets.symmetric(vertical: 2),
-                                    onPressed: () {
-                                      UppiHaptics.mechanicalClick();
-                                      widget.onMapPressed(widget.index);
-                                    },
-                                    minimumSize: Size.zero,
-                                    child: Icon(
-                                      Ionicons.map,
-                                      size: 20,
-                                      color: context.theme.colorScheme.primary,
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
                             fillColor: Colors.transparent,
                             focusColor: Colors.transparent,
                             hoverColor: Colors.transparent,
@@ -259,6 +202,61 @@ class _LocationTextfieldState extends State<LocationTextfield> {
                         ),
                       ],
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Botão de Limpar com Escala e Opacidade Animadas (Mola)
+                      AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: showClearButton ? 1.0 : 0.0,
+                        child: AnimatedScale(
+                          duration: const Duration(milliseconds: 300),
+                          scale: showClearButton ? 1.0 : 0.0,
+                          curve: Curves.easeOutBack,
+                          child: showClearButton 
+                            ? CupertinoButton(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                onPressed: () {
+                                  UppiHaptics.selection();
+                                  _controller.clear();
+                                  widget.onChanged(null);
+                                  setState(() {
+                                    value = '';
+                                  });
+                                },
+                                minimumSize: Size.zero,
+                                child: const Icon(
+                                  Ionicons.close_circle,
+                                  size: 18,
+                                  color: ColorPalette.neutralVariant80,
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                        ),
+                      ),
+                      if (isFocused)
+                        Container(
+                          width: 1,
+                          height: 20,
+                          margin: const EdgeInsets.symmetric(horizontal: 6),
+                          color: isDark ? Colors.white24 : Colors.black12,
+                        ),
+                      CupertinoButton(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        onPressed: () {
+                          UppiHaptics.mechanicalClick();
+                          widget.onMapPressed(widget.index);
+                        },
+                        minimumSize: Size.zero,
+                        child: Icon(
+                          Ionicons.map,
+                          size: 20,
+                          color: context.theme.colorScheme.primary,
+                        ),
+                      )
+                    ],
                   ),
                 ],
               ),
