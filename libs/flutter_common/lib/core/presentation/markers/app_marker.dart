@@ -22,6 +22,7 @@ class AppMarker extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
         // ── 1. Caixa branca principal (balão) ──────────────────────
         GestureDetector(
