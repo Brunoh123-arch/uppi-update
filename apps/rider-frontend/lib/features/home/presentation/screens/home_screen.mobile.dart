@@ -134,15 +134,19 @@ class _HomeScreenMobileState extends State<HomeScreenMobile> {
 
   Widget get backButton => FloatingActionButton.small(
         onPressed: () {
+          debugPrint('UPPI BRASIL - backButton pressed. Current state: ${locator<HomeCubit>().state}');
           locator<HomeCubit>().state.maybeMap(
-                orElse: () => throw Exception(
-                    'This action can only be called from ride preview state'),
+                orElse: () {
+                  debugPrint('UPPI BRASIL - backButton pressed orElse. State: ${locator<HomeCubit>().state}');
+                },
                 ridePreview: (value) {
+                  debugPrint('UPPI BRASIL - backButton pressed: ridePreview, returning to welcome.');
                   locator<HomeCubit>().initializeWelcome(
-                    pickupPoint: locator<LocationCubit>().state.place,
+                    pickupPoint: value.waypoints.firstOrNull ?? locator<LocationCubit>().state.place,
                   );
                 },
                 confirmLocation: (value) {
+                  debugPrint('UPPI BRASIL - backButton pressed: confirmLocation, returning to waypoints.');
                   locator<HomeCubit>().showWaypoints(
                     waypoints: value.waypoints,
                   );
