@@ -20,6 +20,8 @@ import 'package:uppi_motorista/core/enums/driver_status.dart';
 import 'package:uppi_motorista/features/home/presentation/widgets/go_home_mode_button.dart';
 import 'package:uppi_motorista/features/home/presentation/components/daily_challenges_widget.dart';
 import 'rides_radar_sheet.dart';
+import 'package:auto_route/auto_route.dart';
+import 'package:uppi_motorista/core/router/app_router.dart';
 
 class OnlineOfflineSheet extends StatefulWidget {
   final HomeState state;
@@ -38,8 +40,68 @@ class _OnlineOfflineSheetState extends State<OnlineOfflineSheet> {
     final uid = supabase.auth.currentUser?.id;
     if (uid == null) return;
 
-    // Procede para ficar online diretamente
-    locator<HomeBloc>().add(HomeEvent.onStatusChanged(status: const DriverStatus.online()));
+    try {
+      // 1. Checa status da conta e validade da assinatura na tabela profiles
+      final profileRow = await supabase
+          .from('profiles')
+          .select('status, commission_exempt_until')
+          .eq('id', uid)
+          .maybeSingle();
+
+      final status = profileRow?['status']?.toString();
+      if (status != 'active') {
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => CupertinoAlertDialog(
+              title: const Text('Conta em Análise'),
+              content: const Text(
+                'Seu cadastro ainda está sob avaliação ou foi desativado temporariamente pela plataforma. Entre em contato com o suporte para aprovação imediata.',
+              ),
+              actions: [
+                CupertinoDialogAction(
+                  child: const Text('Ok'),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          );
+        }
+        return;
+      }
+
+      // 2. Checa se a assinatura Uppi Pro (Taxa Zero) está ativa
+      final exemptUntilStr = profileRow?['commission_exempt_until']?.toString();
+      final DateTime? exemptUntil = exemptUntilStr != null ? DateTime.parse(exemptUntilStr) : null;
+      final isExempt = exemptUntil != null && exemptUntil.isAfter(DateTime.now());
+
+      if (!isExempt) {
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => CupertinoAlertDialog(
+              title: const Text('Uppi Pro Necessário'),
+              content: const Text(
+                'Para ficar online e receber corridas com Taxa Zero, ative o seu plano Uppi Pro no perfil: Semanal R\$ 19,90 ou Mensal R\$ 69,90.',
+              ),
+              actions: [
+                CupertinoDialogAction(
+                  child: const Text('Voltar'),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          );
+        }
+        return;
+      }
+
+      // Procede para ficar online se tudo estiver OK
+      locator<HomeBloc>().add(HomeEvent.onStatusChanged(status: const DriverStatus.online()));
+    } catch (_) {
+      // Fallback em caso de falha de conexão, para não travar o motorista
+      locator<HomeBloc>().add(HomeEvent.onStatusChanged(status: const DriverStatus.online()));
+    }
   }
 
   @override

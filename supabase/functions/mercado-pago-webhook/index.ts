@@ -127,49 +127,115 @@ Deno.serve(async (req: Request) => {
           .update({ processed: true })
           .eq('mp_payment_id', data.id.toString());
 
-        // Creditar no wallet do rider
-        if (riderId) {
-          // Atualiza o saldo de forma atômica através da nova tabela wallets e RPC
-          const { data: walletData, error: walletError } = await supa.rpc('increment_wallet', {
-            target_user_id: riderId,
-            amount_to_add: payment.transaction_amount
-          });
+        // Se for assinatura de motorista (começa com SUB-)
+        if (rideId && rideId.startsWith('SUB-')) {
+          const driverId = rideId.substring(4);
+          const amountPaid = Number(payment.transaction_amount);
 
-          if (walletError) {
-            console.error('Erro ao incrementar carteira:', walletError);
+          let daysToAdd = 7;
+          let planName = 'Semanal';
+          if (amountPaid >= 40) {
+            daysToAdd = 30;
+            planName = 'Mensal';
           }
 
-          // Registrar transação
-          await supa.from('wallet_transactions').insert({
-            user_id: riderId,
-            amount: payment.transaction_amount,
-            type: 'recharge',
-            description: `Recarga via ${payment.payment_method_id} - MP #${data.id}`,
-            ride_id: rideId,
-            status: 'completed',
-          });
-
-          // Notificar rider
-          const { data: riderProfile } = await supa
+          // Buscar dados do motorista
+          const { data: profile } = await supa
             .from('profiles')
-            .select('fcm_token')
-            .eq('id', riderId)
-            .single();
+            .select('commission_exempt_until, fcm_token')
+            .eq('id', driverId)
+            .maybeSingle();
 
-          if (riderProfile?.fcm_token) {
-            const pushResult = await sendPush({
-              token: riderProfile.fcm_token,
-              title: 'Pagamento confirmado! ✅',
-              body: `R$ ${payment.transaction_amount.toFixed(2)} adicionados à sua carteira.`,
-              data: { type: 'payment_approved', ride_id: rideId },
-              channelId: 'wallet',
-            });
-            if (pushResult.invalidToken) {
-              await cleanFcmToken(riderId, riderProfile.fcm_token);
+          let baseDate = new Date();
+          if (profile?.commission_exempt_until) {
+            const currentExempt = new Date(profile.commission_exempt_until);
+            if (currentExempt > baseDate) {
+              baseDate = currentExempt; // Soma cumulativamente se já estiver ativo
             }
           }
 
-          console.log(`Wallet creditado: rider ${riderId} +R$ ${payment.transaction_amount}`);
+          const newExemptDate = new Date(baseDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
+
+          // Atualizar perfil do motorista
+          await supa
+            .from('profiles')
+            .update({ commission_exempt_until: newExemptDate.toISOString() })
+            .eq('id', driverId);
+
+          // Inserir registro de transação
+          await supa.from('wallet_transactions').insert({
+            user_id: driverId,
+            amount: amountPaid,
+            type: 'subscription',
+            description: `Assinatura Uppi Pro ${planName} - MP #${data.id}`,
+            status: 'completed',
+          });
+
+          // Notificar o motorista
+          if (profile?.fcm_token) {
+            const day = newExemptDate.getDate().toString().padStart(2, '0');
+            const month = (newExemptDate.getMonth() + 1).toString().padStart(2, '0');
+            const year = newExemptDate.getFullYear();
+            const formattedDate = `${day}/${month}/${year}`;
+
+            const pushResult = await sendPush({
+              token: profile.fcm_token,
+              title: 'Uppi Pro Ativado! 👑',
+              body: `Sua assinatura Taxa Zero foi confirmada e está ativa até ${formattedDate}.`,
+              data: { type: 'subscription_approved' },
+              channelId: 'wallet',
+            });
+            if (pushResult.invalidToken) {
+              await cleanFcmToken(driverId, profile.fcm_token);
+            }
+          }
+
+          console.log(`[ASSINATURA] Motorista ${driverId} ativado por +${daysToAdd} dias! Novo limite: ${newExemptDate.toISOString()}`);
+        } else {
+          // Creditar no wallet do rider (Fluxo de passageiro normal)
+          if (riderId) {
+            // Atualiza o saldo de forma atômica através da nova tabela wallets e RPC
+            const { data: walletData, error: walletError } = await supa.rpc('increment_wallet', {
+              target_user_id: riderId,
+              amount_to_add: payment.transaction_amount
+            });
+
+            if (walletError) {
+              console.error('Erro ao incrementar carteira:', walletError);
+            }
+
+            // Registrar transação
+            await supa.from('wallet_transactions').insert({
+              user_id: riderId,
+              amount: payment.transaction_amount,
+              type: 'recharge',
+              description: `Recarga via ${payment.payment_method_id} - MP #${data.id}`,
+              ride_id: rideId,
+              status: 'completed',
+            });
+
+            // Notificar rider
+            const { data: riderProfile } = await supa
+              .from('profiles')
+              .select('fcm_token')
+              .eq('id', riderId)
+              .single();
+
+            if (riderProfile?.fcm_token) {
+              const pushResult = await sendPush({
+                token: riderProfile.fcm_token,
+                title: 'Pagamento confirmado! ✅',
+                body: `R$ ${payment.transaction_amount.toFixed(2)} adicionados à sua carteira.`,
+                data: { type: 'payment_approved', ride_id: rideId },
+                channelId: 'wallet',
+              });
+              if (pushResult.invalidToken) {
+                await cleanFcmToken(riderId, riderProfile.fcm_token);
+              }
+            }
+
+            console.log(`Wallet creditado: rider ${riderId} +R$ ${payment.transaction_amount}`);
+          }
         }
       }
     }

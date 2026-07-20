@@ -92,10 +92,10 @@ class _LgpdConsentScreenState extends State<LgpdConsentScreen>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // ── Cabeçalho / Branding ──────────────────────────
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               Center(
                 child: Container(
-                  padding: const EdgeInsets.all(18),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: cs.primary.withValues(alpha: 0.08),
                     shape: BoxShape.circle,
@@ -103,18 +103,18 @@ class _LgpdConsentScreenState extends State<LgpdConsentScreen>
                   child: Icon(
                     Icons.shield_rounded,
                     color: cs.primary,
-                    size: 40,
+                    size: 36,
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               Text(
                 'UPPI',
                 style: theme.textTheme.headlineMedium?.copyWith(
                   color: cs.primary,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 4,
-                  fontSize: 26,
+                  fontSize: 24,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -127,7 +127,7 @@ class _LgpdConsentScreenState extends State<LgpdConsentScreen>
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
 
               // ── Conteúdo Rolável (Título, Breve Texto e Card) ──
               Expanded(

@@ -67,6 +67,33 @@ class _WhereAreYouGoingSheetState extends State<WhereAreYouGoingSheet> {
                     });
                   },
                 ),
+                BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, authState) {
+                    final firstName = authState.maybeMap(
+                      authenticated: (state) {
+                        final name = state.profile.firstName?.trim() ?? '';
+                        if (name.isEmpty) return null;
+                        return name.split(' ').first;
+                      },
+                      orElse: () => null,
+                    );
+
+                    if (firstName == null || firstName.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        'Olá, $firstName',
+                        style: context.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: context.theme.colorScheme.onSurface,
+                        ),
+                      ),
+                    );
+                  },
+                ),
                 Text(
                   context.translate.whereAreYouGoing,
                   style: context.headlineSmall,
@@ -171,7 +198,7 @@ class _WhereAreYouGoingSheetState extends State<WhereAreYouGoingSheet> {
                                 child: state.maybeMap(
                                   orElse: () => const SizedBox.shrink(),
                                   loading: (value) => const DestinationSuggestionsSkeleton(),
-                                  error: (value) => Text(value.message),
+                                  error: (value) => const SizedBox.shrink(),
                                   loaded: (value) => Column(
                                     mainAxisSize: MainAxisSize.min,
                                     crossAxisAlignment: CrossAxisAlignment.stretch,

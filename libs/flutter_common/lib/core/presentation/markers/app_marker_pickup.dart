@@ -19,7 +19,7 @@ class AppMarkerPickup extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Pick-up point",           // título do balão de partida
+            "Ponto de partida",           // título do balão de partida
             style: Theme.of(context).textTheme.labelMedium,
           ),
           Text(

@@ -17,6 +17,7 @@ import 'package:flutter_common/core/presentation/buttons/app_primary_button.dart
 import 'package:flutter_common/core/presentation/payment_method_list_view.dart';
 import 'package:rider_flutter/features/home/features/track_order/presentation/blocs/track_order.dart';
 import 'package:rider_flutter/features/home/features/track_order/presentation/dialogs/pay_in_cash_dialog.dart';
+import 'package:rider_flutter/features/home/features/track_order/presentation/dialogs/pay_in_pix_dialog.dart';
 
 import 'package:rider_flutter/gen/assets.gen.dart';
 import 'package:flutter_common/core/presentation/common_skeletons.dart';
@@ -430,14 +431,18 @@ class _SelectPaymentMethodSheetState extends State<PayForRideSheet> {
                             onPressed: () {
                               state.mapOrNull(
                                 loaded: (loaded) {
-                                  if (loaded
-                                          .selectedPaymentMethod.paymentMode ==
-                                      PaymentMode.cash) {
+                                  final isCash = loaded.selectedPaymentMethod.paymentMode == PaymentMode.cash;
+                                  final isPix = loaded.selectedPaymentMethod.maybeMap(
+                                    paymentGateway: (g) => g.paymentGateway.id == 'pix',
+                                    orElse: () => false,
+                                  );
+                                  if (isCash || isPix) {
                                     showDialog(
                                       context: context,
                                       useSafeArea: false,
-                                      builder: (context) =>
-                                          const PayInCashDialog(),
+                                      builder: (context) => isCash
+                                          ? const PayInCashDialog()
+                                          : const PayInPixDialog(),
                                     );
                                     return;
                                   }

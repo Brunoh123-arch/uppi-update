@@ -168,17 +168,23 @@ class _EnterNumberFormState extends State<EnterNumberForm> {
         );
       } else {
         const webClientId = '408478040204-2goc9kfqm9sadcci2ue5gkculo21tiif.apps.googleusercontent.com';
-        
-        final googleSignIn = GoogleSignIn.instance;
-        await googleSignIn.initialize(serverClientId: webClientId);
-        
-        final googleUser = await googleSignIn.authenticate();
 
-        final googleAuth = googleUser.authentication;
+        final googleSignIn = GoogleSignIn(
+          serverClientId: webClientId,
+        );
+
+        await googleSignIn.signOut();
+
+        final googleUser = await googleSignIn.signIn();
+        if (googleUser == null) {
+          return;
+        }
+
+        final googleAuth = await googleUser.authentication;
         final idToken = googleAuth.idToken;
 
         if (idToken == null) {
-          throw 'Credenciais não encontradas.';
+          throw 'Token do Google não retornado.';
         }
 
         final authResponse = await Supabase.instance.client.auth.signInWithIdToken(
@@ -189,8 +195,7 @@ class _EnterNumberFormState extends State<EnterNumberForm> {
         final user = authResponse.user;
         if (user != null && mounted) {
           final fullName = user.userMetadata?['full_name'] as String? ?? googleUser.displayName ?? '';
-          
-          // UPPI BRASIL: Garante a criação/sincronização do perfil no banco de dados Supabase.
+
           try {
             await Supabase.instance.client.functions.invoke(
               'sync-profile',
@@ -207,7 +212,7 @@ class _EnterNumberFormState extends State<EnterNumberForm> {
           final parts = fullName.split(' ');
           final firstName = parts.first;
           final lastName = parts.length > 1 ? parts.skip(1).join(' ') : '';
-          
+
           locator<LoginBloc>().onGoogleSignInSuccess(
             ProfileEntity(
               firstName: firstName,
@@ -224,11 +229,19 @@ class _EnterNumberFormState extends State<EnterNumberForm> {
         }
       }
     } catch (e) {
+      debugPrint('[GoogleSignIn] Erro no login Google: $e');
       if (mounted) {
-        context.showSnackBar(message: e.toString());
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Falha ao autenticar com o Google: ${e.toString().replaceAll("PlatformException(", "").replaceAll(")", "")}'),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
       }
     } finally {
-      if (mounted) setState(() => _googleLoading = false);
+      if (mounted) {
+        setState(() => _googleLoading = false);
+      }
     }
   }
 

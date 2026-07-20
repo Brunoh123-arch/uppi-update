@@ -330,41 +330,79 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             ? Colors.orangeAccent
             : Colors.redAccent;
 
-    return Row(
-      children: [
-        Expanded(
-          child: _HealthCard(
-            label: 'NPS Aproximado',
-            value: _nps.toStringAsFixed(0),
-            subtitle: '% promotores (5★) − % detratores (1-2★)',
-            icon: Icons.thumb_up_rounded,
-            color: npsColor,
-            gauge: ((_nps + 100) / 200).clamp(0.0, 1.0),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _HealthCard(
-            label: 'Churn Rate Motoristas',
-            value: '${_churnRate.toStringAsFixed(1)}%',
-            subtitle: 'Motoristas ativos no mês anterior que pararam',
-            icon: Icons.person_remove_rounded,
-            color: churnColor,
-            gauge: (_churnRate / 100).clamp(0.0, 1.0),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _HealthCard(
-            label: 'Tempo Médio de Espera',
-            value: _avgWaitTime,
-            subtitle: 'Da solicitação até aceite pelo motorista',
-            icon: Icons.timer_rounded,
-            color: _kPrimary,
-            gauge: null,
-          ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isMobile = constraints.maxWidth < 600;
+        if (isMobile) {
+          return Column(
+            children: [
+              _HealthCard(
+                label: 'NPS Aproximado',
+                value: _nps.toStringAsFixed(0),
+                subtitle: '% promotores (5★) − % detratores (1-2★)',
+                icon: Icons.thumb_up_rounded,
+                color: npsColor,
+                gauge: ((_nps + 100) / 200).clamp(0.0, 1.0),
+              ),
+              const SizedBox(height: 16),
+              _HealthCard(
+                label: 'Churn Rate Motoristas',
+                value: '${_churnRate.toStringAsFixed(1)}%',
+                subtitle: 'Motoristas ativos no mês anterior que pararam',
+                icon: Icons.person_remove_rounded,
+                color: churnColor,
+                gauge: (_churnRate / 100).clamp(0.0, 1.0),
+              ),
+              const SizedBox(height: 16),
+              _HealthCard(
+                label: 'Tempo Médio de Espera',
+                value: _avgWaitTime,
+                subtitle: 'Da solicitação até aceite pelo motorista',
+                icon: Icons.timer_rounded,
+                color: _kPrimary,
+                gauge: null,
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(
+              child: _HealthCard(
+                label: 'NPS Aproximado',
+                value: _nps.toStringAsFixed(0),
+                subtitle: '% promotores (5★) − % detratores (1-2★)',
+                icon: Icons.thumb_up_rounded,
+                color: npsColor,
+                gauge: ((_nps + 100) / 200).clamp(0.0, 1.0),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _HealthCard(
+                label: 'Churn Rate Motoristas',
+                value: '${_churnRate.toStringAsFixed(1)}%',
+                subtitle: 'Motoristas ativos no mês anterior que pararam',
+                icon: Icons.person_remove_rounded,
+                color: churnColor,
+                gauge: (_churnRate / 100).clamp(0.0, 1.0),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _HealthCard(
+                label: 'Tempo Médio de Espera',
+                value: _avgWaitTime,
+                subtitle: 'Da solicitação até aceite pelo motorista',
+                icon: Icons.timer_rounded,
+                color: _kPrimary,
+                gauge: null,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

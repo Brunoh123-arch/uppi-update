@@ -21,16 +21,16 @@ import 'package:rider_flutter/core/di/app_initializer.dart';
 
 void main() async {
   try {
-    debugPrint("UPPI BRASIL [main] Iniciando inicialização do app...");
+    debugPrint("UPPI [main] Iniciando inicialização do app...");
     await AppInitializer.init(
       (app) => runApp(app),
     );
-    debugPrint("UPPI BRASIL [main] Inicialização concluída com sucesso");
+    debugPrint("UPPI [main] Inicialização concluída com sucesso");
   } catch (e, stack) {
-    debugPrint("UPPI BRASIL [main] ERRO CRÍTICO na inicialização: $e");
-    debugPrint("UPPI BRASIL [main] StackTrace: $stack");
+    debugPrint("UPPI [main] ERRO CRÍTICO na inicialização: $e");
+    debugPrint("UPPI [main] StackTrace: $stack");
   } finally {
-    debugPrint("UPPI BRASIL [main] Chamando runApp(const MyApp())");
+    debugPrint("UPPI [main] Chamando runApp(const MyApp())");
     runApp(const MyApp());
   }
 }

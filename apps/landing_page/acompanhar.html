@@ -291,9 +291,20 @@
   const SUPABASE_URL = 'https://kqfmahrxjuqlvxngeurj.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZm1haHJ4anVxbHZ4bmdldXJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNDY2MTcsImV4cCI6MjA5MzgyMjYxN30.hQUfMD0TJIG-RE5SAlKaXBiR4HQQrH2JQZyQx4mASvs';
 
-  // Extract token from URL: /acompanhar/TOKEN
-  const pathParts = window.location.pathname.split('/');
-  const token = pathParts[pathParts.length - 1];
+  // Extract token from URL in a robust way (supporting path, trailing slash, and query param fallbacks)
+  let token = '';
+  const urlParams = new URLSearchParams(window.location.search);
+  token = urlParams.get('t') || urlParams.get('token') || '';
+
+  if (!token) {
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    if (pathParts.length > 0) {
+      const lastPart = pathParts[pathParts.length - 1];
+      if (lastPart !== 'acompanhar' && lastPart !== 'acompanhar.html') {
+        token = lastPart;
+      }
+    }
+  }
 
   const loadingOverlay = document.getElementById('loadingOverlay');
   const statusBadge = document.getElementById('statusBadge');

@@ -19,7 +19,7 @@ class AppMarkerDropoff extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            "Destination",            // título do balão de destino
+            "Ponto de destino",            // título do balão de destino
             style: Theme.of(context).textTheme.labelMedium,
           ),
           Text(

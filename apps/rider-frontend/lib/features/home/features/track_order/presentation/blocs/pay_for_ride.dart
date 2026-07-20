@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_common/core/entities/payment_method_union.dart';
+import 'package:flutter_common/core/entities/payment_gateway.dart';
+import 'package:flutter_common/core/enums/gateway_link_method.dart';
 import 'package:flutter_common/core/enums/payment_mode.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
@@ -28,25 +30,22 @@ class PayForRideCubit extends Cubit<PayForRideState> {
     required bool walletCreditSufficient,
   }) {
     _subscription?.cancel();
-    _subscription =
-        _repository.startPaymentMethodsSubscription().listen((result) {
-      result.fold(
-        (failure) => emit(PayForRideState.error(failure: failure)),
-        (paymentMethods) => emit(
-          PayForRideState.loaded(
-            selectedPaymentMethod: selectedPaymentMethod ??
-                (walletCreditSufficient
-                    ? const PaymentMethodUnion.wallet()
-                    : const PaymentMethodUnion.cash()),
-            paymentMethods: [
-              if (walletCreditSufficient) const PaymentMethodUnion.wallet(),
-              ...paymentMethods,
-              if (cashEnabled) const PaymentMethodUnion.cash(),
-            ],
+    emit(
+      PayForRideState.loaded(
+        selectedPaymentMethod: selectedPaymentMethod ?? const PaymentMethodUnion.cash(),
+        paymentMethods: [
+          const PaymentMethodUnion.cash(),
+          PaymentMethodUnion.paymentGateway(
+            paymentGateway: const PaymentGatewayEntity(
+              id: 'pix',
+              name: 'Pix (Pagar ao Motorista)',
+              logoUrl: null,
+              linkMethod: GatewayLinkMethod.none,
+            ),
           ),
-        ),
-      );
-    });
+        ],
+      ),
+    );
   }
 
   void changePaymentMethod({
@@ -72,7 +71,11 @@ class PayForRideCubit extends Cubit<PayForRideState> {
       loaded: (value) => value,
     );
     final paymentMode = loadedState.selectedPaymentMethod.paymentMode;
-    if (paymentMode == PaymentMode.cash) {
+    final isPix = loadedState.selectedPaymentMethod.maybeMap(
+      paymentGateway: (g) => g.paymentGateway.id == 'pix',
+      orElse: () => false,
+    );
+    if (paymentMode == PaymentMode.cash || isPix) {
       emit(
         loadedState.copyWith(
           paymentStatus: const PayForRidePaymentStatus.success(),

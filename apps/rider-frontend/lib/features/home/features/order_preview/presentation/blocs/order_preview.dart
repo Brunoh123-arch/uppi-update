@@ -7,6 +7,8 @@ import 'package:rider_flutter/core/dto/new_order_args.dart';
 import 'package:flutter_common/core/entities/driver_location.dart';
 import 'package:rider_flutter/core/entities/order.dart';
 import 'package:flutter_common/core/entities/payment_method_union.dart';
+import 'package:flutter_common/core/entities/payment_gateway.dart';
+import 'package:flutter_common/core/enums/gateway_link_method.dart';
 import 'package:flutter_common/core/entities/place.dart';
 import 'package:rider_flutter/core/entities/service.dart';
 import 'package:rider_flutter/core/entities/service_category.dart';
@@ -58,9 +60,15 @@ class OrderPreviewCubit extends Cubit<OrderPreviewState> {
                 ?.$2 ??
             0;
         final paymentMethods = [
-          if (walletCredit > 0 && r.walletEnabled) const PaymentMethodUnion.wallet(),
-          ...(r.paymentGateways, r.savedPaymentMethods).toPaymentMethodUnion,
-          if (r.cashEnabled) const PaymentMethodUnion.cash(),
+          const PaymentMethodUnion.cash(),
+          PaymentMethodUnion.paymentGateway(
+            paymentGateway: const PaymentGatewayEntity(
+              id: 'pix',
+              name: 'Pix (Pagar ao Motorista)',
+              logoUrl: null,
+              linkMethod: GatewayLinkMethod.none,
+            ),
+          ),
         ];
         emit(
           OrderPreviewState.loaded(

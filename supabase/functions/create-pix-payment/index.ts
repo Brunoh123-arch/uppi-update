@@ -23,34 +23,45 @@ Deno.serve(async (req: Request) => {
     }
 
     const body = await req.json();
+    const dataObj = body.data ?? body.args ?? body;
     const {
       orderId, ride_id,
       payerEmail, payerFirstName, payerLastName, payerCpf,
-    } = body.args ?? body;
+      amount, customerName, customerEmail, customerDocument, customerPhone, accountType
+    } = dataObj;
 
+    const isDriverAssinatura = accountType === 'drivers';
     const rideId = orderId || ride_id;
 
-    if (!rideId || !payerEmail || !payerCpf) {
-      return errorResponse('orderId, payerEmail e payerCpf são obrigatórios', 400);
+    // 1. Validar campos básicos com base no tipo de pagamento
+    let finalEmail = payerEmail || customerEmail;
+    let finalCpf = payerCpf || customerDocument;
+    let finalFirstName = payerFirstName || '';
+    let finalLastName = payerLastName || '';
+
+    if (isDriverAssinatura) {
+      if (!amount || !finalEmail || !finalCpf) {
+        return errorResponse('amount, customerEmail e customerDocument são obrigatórios para motoristas', 400);
+      }
+      if (customerName) {
+        const nameParts = customerName.trim().split(/\s+/);
+        finalFirstName = nameParts[0] || '';
+        finalLastName = nameParts.slice(1).join(' ') || '';
+      }
+    } else {
+      if (!rideId || !finalEmail || !finalCpf) {
+        return errorResponse('orderId, payerEmail e payerCpf são obrigatórios para passageiros', 400);
+      }
     }
 
     // Validação matemática de CPF (F6)
-    if (!isValidCpf(payerCpf)) {
+    if (!isValidCpf(finalCpf)) {
       return errorResponse('CPF do pagador é inválido', 400);
     }
 
     const supa = getServiceClient();
-
-    // 🛡️ UPPI SEGURANÇA: Buscar a tarifa (fare) real e o driver no banco de dados para evitar fraudes de preço
-    const { data: ride, error: rideError } = await supa
-      .from('rides')
-      .select('fare, driver_id')
-      .eq('id', rideId)
-      .single();
-
-    if (rideError || !ride) {
-      return errorResponse('Corrida não encontrada ou erro ao carregar tarifa', 404);
-    }
+    let fareAmount = 0;
+    let applicationFee: number | undefined = undefined;
 
     // Verificar se o gateway Mercado Pago está ativo
     const { data: gateway } = await supa
@@ -63,61 +74,85 @@ Deno.serve(async (req: Request) => {
       return errorResponse('O pagamento via Mercado Pago / Pix está desativado pelo administrador.', 400);
     }
 
-    const fareAmount = Number(ride.fare);
-    if (!fareAmount || fareAmount <= 0) {
-      return errorResponse('Tarifa da corrida inválida ou zerada', 400);
-    }
+    if (isDriverAssinatura) {
+      // Valor da assinatura (R$ 19,90 ou R$ 99,90) passado no body
+      fareAmount = Number(amount);
+    } else {
+      // 🛡️ UPPI SEGURANÇA: Buscar a tarifa (fare) real e o driver no banco de dados para evitar fraudes de preço
+      const { data: ride, error: rideError } = await supa
+        .from('rides')
+        .select('fare, driver_id')
+        .eq('id', rideId)
+        .single();
 
-    const config = await getMercadoPagoConfig(supa);
+      if (rideError || !ride) {
+        return errorResponse('Corrida não encontrada ou erro ao carregar tarifa', 404);
+      }
 
-    // Calcular Split (Application Fee) se o motorista estiver atribuído e tiver MP Account vinculado
-    let applicationFee: number | undefined = undefined;
-    if (ride.driver_id) {
-      const { data: driverProfile } = await supa
-        .from('profiles')
-        .select('mercado_pago_account_id, commission_percentage')
-        .eq('id', ride.driver_id)
-        .maybeSingle();
+      fareAmount = Number(ride.fare);
 
-      if (driverProfile?.mercado_pago_account_id) {
-        let commissionPct = Number(driverProfile.commission_percentage);
-        if (isNaN(commissionPct) || commissionPct === 0) {
-          const { data: appSettings } = await supa
-            .from('app_settings')
-            .select('value')
-            .eq('key', 'commission_rate')
-            .maybeSingle();
-          commissionPct = Number(appSettings?.value) || 15;
+      // Calcular Split (Application Fee) se o motorista estiver atribuído e tiver MP Account vinculado
+      if (ride.driver_id) {
+        const { data: driverProfile } = await supa
+          .from('profiles')
+          .select('mercado_pago_account_id, commission_percentage')
+          .eq('id', ride.driver_id)
+          .maybeSingle();
+
+        if (driverProfile?.mercado_pago_account_id) {
+          let commissionPct = Number(driverProfile.commission_percentage);
+          if (isNaN(commissionPct) || commissionPct === 0) {
+            const { data: appSettings } = await supa
+              .from('app_settings')
+              .select('value')
+              .eq('key', 'commission_rate')
+              .maybeSingle();
+            commissionPct = Number(appSettings?.value) || 15;
+          }
+          
+          applicationFee = Number((fareAmount * (commissionPct / 100)).toFixed(2));
         }
-        
-        applicationFee = Number((fareAmount * (commissionPct / 100)).toFixed(2));
       }
     }
 
-    // Criar pagamento PIX no Mercado Pago (suporta split via application_fee se disponível)
+    if (!fareAmount || fareAmount <= 0) {
+      return errorResponse('Valor do pagamento inválido ou zerado', 400);
+    }
+
+    const config = await getMercadoPagoConfig(supa);
+    const externalRef = isDriverAssinatura ? `SUB-${uid}` : rideId!;
+    const description = isDriverAssinatura 
+      ? `Assinatura Uppi Pro #${uid.substring(0, 8)}`
+      : `Corrida Uppi #${rideId!.substring(0, 8)}`;
+
+    // Criar pagamento PIX no Mercado Pago
     const payment = await mpFetch('/v1/payments', config.accessToken, 'POST', {
       transaction_amount: fareAmount,
-      description: `Corrida Uppi #${rideId.substring(0, 8)}`,
+      description: description,
       payment_method_id: 'pix',
       payer: {
-        email: payerEmail,
-        first_name: payerFirstName || '',
-        last_name: payerLastName || '',
+        email: finalEmail,
+        first_name: finalFirstName,
+        last_name: finalLastName,
         identification: {
           type: 'CPF',
-          number: payerCpf.replace(/\D/g, ''),
+          number: finalCpf.replace(/\D/g, ''),
         },
       },
-      external_reference: rideId,
+      external_reference: externalRef,
       notification_url: Deno.env.get('MP_WEBHOOK_URL') || '',
-      metadata: { rider_id: uid, ride_id: rideId },
-      ...(applicationFee !== undefined ? { application_fee: applicationFee } : {}),
+      metadata: { 
+        rider_id: uid, 
+        account_type: isDriverAssinatura ? 'drivers' : 'riders',
+        ...(isDriverAssinatura ? {} : { ride_id: rideId })
+      },
+      ...(isDriverAssinatura ? {} : (applicationFee !== undefined ? { application_fee: applicationFee } : {})),
     });
 
-    // Salvar registro no Supabase
+    // Salvar registro no Supabase (se for assinatura, ride_id fica null)
     await supa.from('pix_payments').insert({
       mp_payment_id: payment.id.toString(),
-      ride_id: rideId,
+      ride_id: isDriverAssinatura ? null : rideId,
       rider_id: uid,
       amount: fareAmount,
       status: payment.status,
@@ -127,7 +162,7 @@ Deno.serve(async (req: Request) => {
       expires_at: payment.date_of_expiration || null,
     });
 
-    console.log(`PIX criado: ${payment.id} | Corrida: ${rideId} | R$ ${fareAmount}`);
+    console.log(`PIX criado: ${payment.id} | Tipo: ${isDriverAssinatura ? 'Assinatura' : 'Corrida'} | Ref: ${externalRef} | R$ ${fareAmount}`);
 
     return jsonResponse({
       paymentId: payment.id,

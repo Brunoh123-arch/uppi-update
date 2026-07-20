@@ -663,7 +663,7 @@ class HomeRepositoryProd implements HomeRepository {
             .eq('key', 'global_config')
             .maybeSingle();
         if (configRow != null && configRow['commission_rate'] != null) {
-          final rawRate = double.tryParse(configRow['commission_rate']?.toString() ?? '') ?? 15.0;
+          final rawRate = double.tryParse(configRow['commission_rate']?.toString() ?? '') ?? 0.0;
           commissionRate = rawRate > 1.0 ? rawRate / 100 : rawRate;
           _cachedCommissionRate = commissionRate;
         } else {
@@ -674,7 +674,7 @@ class HomeRepositoryProd implements HomeRepository {
               .eq('key', 'commission_rate')
               .maybeSingle();
           if (oldRow != null && oldRow['value'] != null) {
-            final rawRate = double.tryParse(oldRow['value']?.toString() ?? '') ?? 15.0;
+            final rawRate = double.tryParse(oldRow['value']?.toString() ?? '') ?? 0.0;
             commissionRate = rawRate > 1.0 ? rawRate / 100 : rawRate;
             _cachedCommissionRate = commissionRate;
           }

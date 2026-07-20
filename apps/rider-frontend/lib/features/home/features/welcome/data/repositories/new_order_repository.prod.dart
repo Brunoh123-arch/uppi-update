@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_common/core/entities/place.dart';
 import 'package:injectable/injectable.dart';
 import 'package:rider_flutter/core/datasources/firebase_datasource.dart';
@@ -58,28 +59,34 @@ class NewOrderRepositoryImpl implements NewOrderRepository {
         }).toList();
       } catch (_) {}
 
-      // Buscar últimos destinos das corridas recentes no Supabase
-      final ordersSnapshot = await supabaseClient
-          .from('rides')
-          .select('dropoff_address, dropoff_lat, dropoff_lng')
-          .eq('rider_id', uid)
-          .order('created_at', ascending: false)
-          .limit(10);
+      // Buscar últimos destinos das corridas recentes no Supabase com timeout e protecao
+      final places = <PlaceEntity>[];
+      try {
+        final ordersSnapshot = await supabaseClient
+            .from('rides')
+            .select('dropoff_address, dropoff_lat, dropoff_lng')
+            .eq('rider_id', uid)
+            .order('created_at', ascending: false)
+            .limit(10)
+            .timeout(const Duration(seconds: 3));
 
-      final uniquePlaces = <String, PlaceEntity>{};
-      for (final doc in ordersSnapshot as List<dynamic>) {
-        final address = doc['dropoff_address'] as String? ?? 'Unknown Address';
-        final lat = (doc['dropoff_lat'] as num?)?.toDouble() ?? 0;
-        final lng = (doc['dropoff_lng'] as num?)?.toDouble() ?? 0;
-        final key = address.trim().toLowerCase();
-        if (!uniquePlaces.containsKey(key)) {
-          uniquePlaces[key] = PlaceEntity(
-            coordinates: LatLngEntity(lat: lat, lng: lng),
-            address: address,
-          );
+        final uniquePlaces = <String, PlaceEntity>{};
+        for (final doc in ordersSnapshot as List<dynamic>) {
+          final address = doc['dropoff_address'] as String? ?? 'Endereço';
+          final lat = (doc['dropoff_lat'] as num?)?.toDouble() ?? 0;
+          final lng = (doc['dropoff_lng'] as num?)?.toDouble() ?? 0;
+          final key = address.trim().toLowerCase();
+          if (!uniquePlaces.containsKey(key)) {
+            uniquePlaces[key] = PlaceEntity(
+              coordinates: LatLngEntity(lat: lat, lng: lng),
+              address: address,
+            );
+          }
         }
+        places.addAll(uniquePlaces.values);
+      } catch (e) {
+        debugPrint('[NewOrderRepo] Sugestões recentes de rota falharam ou expiraram: $e');
       }
-      final places = uniquePlaces.values.toList();
 
       return Right((favoriteLocations, places));
     } catch (e) {

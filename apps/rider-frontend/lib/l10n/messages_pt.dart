@@ -195,7 +195,7 @@ class SPt extends S {
   String get actionContinue => 'Continuar';
 
   @override
-  String get whereIsYourDestination => 'Para onde você vai?';
+  String get whereIsYourDestination => 'Digite seu destino';
 
   @override
   String get whereAreYouGoing => 'Para onde você vai?';

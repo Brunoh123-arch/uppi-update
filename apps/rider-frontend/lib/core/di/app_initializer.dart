@@ -13,6 +13,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:generic_map/interfaces/map_provider_enum.dart';
 
+import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
+import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
+
 import 'package:rider_flutter/config/locator/locator.dart';
 import 'package:flutter_common/core/blocs/settings.dart';
 import 'package:rider_flutter/core/blocs/app_mode_cubit.dart';
@@ -39,6 +42,19 @@ class AppInitializer {
   static Future<void> init(FutureOr<void> Function(Widget) appRunner) async {
     debugPrint("UPPI BRASIL [AppInitializer.init] Início do método init");
     SentryWidgetsFlutterBinding.ensureInitialized();
+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        final GoogleMapsFlutterPlatform mapsImplementation = GoogleMapsFlutterPlatform.instance;
+        if (mapsImplementation is GoogleMapsFlutterAndroid) {
+          mapsImplementation.useAndroidViewSurface = false;
+          await mapsImplementation.initializeWithRenderer(AndroidMapRenderer.latest);
+          debugPrint("[AppInitializer] Google Maps Android Renderer LATEST ativado com sucesso");
+        }
+      } catch (e) {
+        debugPrint("[AppInitializer] GoogleMapsAndroid surface config: $e");
+      }
+    }
     debugPrint("UPPI BRASIL [AppInitializer.init] SentryWidgetsFlutterBinding.ensureInitialized concluído");
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
@@ -284,7 +300,7 @@ class AppInitializer {
       final List<dynamic> data = await Supabase.instance.client
           .from('app_settings')
           .select()
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(milliseconds: 1500));
       debugPrint("UPPI BRASIL - Supabase app_settings loaded: $data");
       if (data.isNotEmpty) {
         final Map<String, String> settings = {};

@@ -85,61 +85,29 @@ class _DemandHeatmapScreenState extends State<DemandHeatmapScreen> {
           break;
       }
 
-      // Query database for recent rides to determine demand hotspots
-      final response = await Supabase.instance.client
+      // 1. Fetch real rides for historical/recent demand heatmap
+      final ridesResponse = await Supabase.instance.client
           .from('rides')
           .select('id, pickup_location, status, created_at')
           .gte('created_at', cutoff.toIso8601String());
 
-      final List<Map<String, dynamic>> rides = List<Map<String, dynamic>>.from(response);
+      final List<Map<String, dynamic>> rides = List<Map<String, dynamic>>.from(ridesResponse);
+      final List<Map<String, dynamic>> calculatedHotspots = [];
 
-      // Perform a mock clustering on Belém coordinates if no real data
-      if (rides.isEmpty) {
-        _hotspots = [
-          {
-            'zone': 'Umarizal_Nazare',
-            'lat': -1.4485,
-            'lng': -48.4842,
-            'intensity': 'high',
-            'multiplier': 1.6,
-            'openOrders': 12,
-            'availableDrivers': 3,
-          },
-          {
-            'zone': 'Marco_Pedreira',
-            'lat': -1.4338,
-            'lng': -48.4648,
-            'intensity': 'medium',
-            'multiplier': 1.3,
-            'openOrders': 7,
-            'availableDrivers': 4,
-          },
-          {
-            'zone': 'Reduto_Campina',
-            'lat': -1.4512,
-            'lng': -48.4975,
-            'intensity': 'extreme',
-            'multiplier': 2.1,
-            'openOrders': 19,
-            'availableDrivers': 1,
-          }
-        ];
-      } else {
-        // Group by approximate coordinates to create zones
+      // Cluster by approximate coordinates (to 3 decimal places ~110m)
+      if (rides.isNotEmpty) {
         final Map<String, List<Map<String, dynamic>>> clusters = {};
         for (var r in rides) {
           final loc = r['pickup_location']?.toString();
           if (loc != null) {
             final coords = _parsePostGISPoint(loc);
             if (coords != null) {
-              // Cluster to 3 decimal places (approx 110 meters)
               final key = "${(coords.latitude * 100).round() / 100}_${(coords.longitude * 100).round() / 100}";
               clusters.putIfAbsent(key, () => []).add(r);
             }
           }
         }
 
-        final List<Map<String, dynamic>> calculatedHotspots = [];
         clusters.forEach((key, list) {
           final parts = key.split('_');
           final lat = double.parse(parts[0]);
@@ -161,18 +129,73 @@ class _DemandHeatmapScreenState extends State<DemandHeatmapScreen> {
 
           if (count >= 3) {
             calculatedHotspots.add({
-              'zone': 'Sector_${key.replaceAll('.', 'd')}',
+              'id': 'real_$key',
+              'zone': 'Setor_${key.replaceAll('.', 'd')}',
               'lat': lat,
               'lng': lng,
               'intensity': intensity,
               'multiplier': mult,
               'openOrders': count,
               'availableDrivers': (count * 0.4).round() + 1,
+              'is_simulated': false,
             });
           }
         });
+      }
 
-        _hotspots = calculatedHotspots.isEmpty ? [] : calculatedHotspots;
+      // 2. Fetch active simulated hotspots from database
+      try {
+        final simulatedResponse = await Supabase.instance.client
+            .from('simulated_hotspots')
+            .select()
+            .or('expires_at.is.null,expires_at.gt.${DateTime.now().toUtc().toIso8601String()}');
+        
+        final List<Map<String, dynamic>> simulated = List<Map<String, dynamic>>.from(simulatedResponse);
+        for (final sh in simulated) {
+          calculatedHotspots.add({
+            'id': sh['id'].toString(),
+            'zone': sh['name'] ?? 'Calor Simulado',
+            'lat': (sh['latitude'] as num).toDouble(),
+            'lng': (sh['longitude'] as num).toDouble(),
+            'intensity': sh['intensity']?.toString() ?? 'medium',
+            'multiplier': (sh['multiplier'] as num?)?.toDouble() ?? 1.0,
+            'openOrders': 5,
+            'availableDrivers': 1,
+            'is_simulated': true,
+          });
+        }
+      } catch (e) {
+        debugPrint('[Heatmap] Tabela simulated_hotspots ainda nao criada: $e');
+      }
+
+      // Fallback fallback mock coordinates (Castanhal coordinates instead of Belem)
+      if (calculatedHotspots.isEmpty) {
+        _hotspots = [
+          {
+            'id': 'mock_1',
+            'zone': 'Castanhal Centro',
+            'lat': -1.2950,
+            'lng': -47.9250,
+            'intensity': 'high',
+            'multiplier': 1.5,
+            'openOrders': 8,
+            'availableDrivers': 2,
+            'is_simulated': false,
+          },
+          {
+            'id': 'mock_2',
+            'zone': 'Estrela',
+            'lat': -1.3020,
+            'lng': -47.9180,
+            'intensity': 'medium',
+            'multiplier': 1.3,
+            'openOrders': 4,
+            'availableDrivers': 3,
+            'is_simulated': false,
+          }
+        ];
+      } else {
+        _hotspots = calculatedHotspots;
       }
     } catch (e) {
       debugPrint("Error fetching heatmap: $e");
@@ -193,6 +216,291 @@ class _DemandHeatmapScreenState extends State<DemandHeatmapScreen> {
       }
     } catch (_) {}
     return null;
+  }
+
+  void _showSimulateHotspotModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: _kSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final simulatedHotspots = _hotspots.where((h) => h['is_simulated'] == true).toList();
+            
+            return Container(
+              padding: EdgeInsets.only(
+                top: 24,
+                left: 24,
+                right: 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Simulação de Calor de Demanda',
+                        style: GoogleFonts.outfit(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: _kSubtext),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Posicione o mapa no local desejado (o centro do mapa será o ponto de calor) e clique abaixo para simular a demanda.',
+                    style: TextStyle(color: _kSubtext, fontSize: 13),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.local_fire_department, color: Colors.white),
+                    label: const Text('Forçar Ponto de Calor Aqui', style: TextStyle(color: Colors.white)),
+                    onPressed: () async {
+                      final created = await _showCreateHotspotDialog(context);
+                      if (created == true) {
+                        _fetchHeatmapData();
+                        setModalState(() {});
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Pontos de Calor Simulados Ativos:',
+                    style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white70),
+                  ),
+                  const SizedBox(height: 12),
+                  if (simulatedHotspots.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Center(
+                        child: Text(
+                          'Nenhum ponto de calor simulado ativo.',
+                          style: TextStyle(color: _kSubtext, fontSize: 13),
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      constraints: const BoxConstraints(maxHeight: 220),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: simulatedHotspots.length,
+                        itemBuilder: (context, index) {
+                          final h = simulatedHotspots[index];
+                          final id = h['id']?.toString() ?? '';
+                          final zone = h['zone']?.toString() ?? 'Sem nome';
+                          final multiplier = h['multiplier']?.toString() ?? '1.0';
+                          final intensity = h['intensity']?.toString() ?? 'medium';
+
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: _kBackground,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: _getHeatmapColor(intensity).withOpacity(0.3)),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.local_fire_department, color: _getHeatmapColor(intensity)),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        zone,
+                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        'Multiplicador: ${multiplier}x | Intensidade: $intensity',
+                                        style: const TextStyle(color: _kSubtext, fontSize: 12),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                                  onPressed: () async {
+                                    final confirm = await showDialog<bool>(
+                                      context: context,
+                                      builder: (ctx) => AlertDialog(
+                                        backgroundColor: _kSurface,
+                                        title: const Text('Deletar Ponto de Calor', style: TextStyle(color: Colors.white)),
+                                        content: const Text(
+                                          'Tem certeza que deseja remover este ponto de calor simulado?',
+                                          style: TextStyle(color: _kSubtext),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(ctx, false),
+                                            child: const Text('Cancelar', style: TextStyle(color: _kSubtext)),
+                                          ),
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(ctx, true),
+                                            child: const Text('Excluir', style: TextStyle(color: Colors.redAccent)),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                    if (confirm == true) {
+                                      await Supabase.instance.client
+                                          .from('simulated_hotspots')
+                                          .delete()
+                                          .eq('id', id);
+                                      await _fetchHeatmapData();
+                                      setModalState(() {});
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<bool?> _showCreateHotspotDialog(BuildContext context) async {
+    final nameCtrl = TextEditingController();
+    final multCtrl = TextEditingController(text: '1.5');
+    final durationCtrl = TextEditingController(text: '60');
+    String selectedIntensity = 'medium';
+
+    final center = await _mapController?.getCenter() ?? const LatLng(-1.2950, -47.9250);
+
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              backgroundColor: _kSurface,
+              title: const Text('Simular Ponto de Calor', style: TextStyle(color: Colors.white)),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: nameCtrl,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: 'Nome da Zona (Ex: Apeú)',
+                        labelStyle: TextStyle(color: _kSubtext),
+                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: _kBorder)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: selectedIntensity,
+                      dropdownColor: _kSurface,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: 'Intensidade',
+                        labelStyle: TextStyle(color: _kSubtext),
+                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: _kBorder)),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'low', child: Text('Baixa')),
+                        DropdownMenuItem(value: 'medium', child: Text('Média')),
+                        DropdownMenuItem(value: 'high', child: Text('Alta')),
+                        DropdownMenuItem(value: 'extreme', child: Text('Extrema')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          setStateDialog(() => selectedIntensity = val);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: multCtrl,
+                      style: const TextStyle(color: Colors.white),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(
+                        labelText: 'Multiplicador de Preço (Ex: 1.50)',
+                        labelStyle: TextStyle(color: _kSubtext),
+                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: _kBorder)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: durationCtrl,
+                      style: const TextStyle(color: Colors.white),
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Duração (minutos)',
+                        labelStyle: TextStyle(color: _kSubtext),
+                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: _kBorder)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Cancelar', style: TextStyle(color: _kSubtext)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                  onPressed: () async {
+                    final name = nameCtrl.text.trim();
+                    final mult = double.tryParse(multCtrl.text) ?? 1.5;
+                    final duration = int.tryParse(durationCtrl.text) ?? 60;
+
+                    if (name.isEmpty) return;
+
+                    try {
+                      await Supabase.instance.client.from('simulated_hotspots').insert({
+                        'name': name,
+                        'latitude': center.latitude,
+                        'longitude': center.longitude,
+                        'intensity': selectedIntensity,
+                        'multiplier': mult,
+                        'expires_at': DateTime.now().toUtc().add(Duration(minutes: duration)).toIso8601String(),
+                      });
+                      Navigator.pop(ctx, true);
+                    } catch (e) {
+                      debugPrint('Erro ao criar ponto de calor simulado: $e');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Erro: $e'), backgroundColor: Colors.red),
+                      );
+                    }
+                  },
+                  child: const Text('Salvar', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   Color _getHeatmapColor(String intensity) {
@@ -320,6 +628,18 @@ class _DemandHeatmapScreenState extends State<DemandHeatmapScreen> {
                 contentPadding: EdgeInsets.zero,
                 onChanged: (val) => setState(() => _showRides = val),
               ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(48),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                icon: const Icon(Icons.add_location_alt_rounded),
+                label: const Text('Simular Calor de Demanda'),
+                onPressed: () => _showSimulateHotspotModal(context),
+              ),
             ],
           ),
         ),
@@ -409,9 +729,9 @@ class _DemandHeatmapScreenState extends State<DemandHeatmapScreen> {
         GenericMap(
           provider: GoogleMapProvider(),
           initialLocation: Place(
-            const LatLng(-1.4558, -48.5024),
-            'Belém, PA',
-            'Belém',
+            const LatLng(-1.2950, -47.9250),
+            'Castanhal, PA',
+            'Castanhal',
           ),
           interactive: true,
           myLocationEnabled: false,

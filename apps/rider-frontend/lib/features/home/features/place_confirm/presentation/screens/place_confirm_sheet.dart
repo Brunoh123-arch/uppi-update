@@ -12,6 +12,7 @@ import 'package:rider_flutter/core/presentation/place_result_item.dart';
 import 'package:rider_flutter/features/home/presentation/blocs/home.dart';
 import 'package:rider_flutter/features/home/presentation/blocs/place_confirm.dart';
 import 'package:rider_flutter/features/home/presentation/components/home_map.dart';
+import 'package:rider_flutter/features/home/features/waypoints/presentation/blocs/selected_location_field.dart';
 
 class PlaceConfirmSheet extends StatefulWidget {
   final List<PlaceEntity?> waypoints;
@@ -88,8 +89,27 @@ class _PlaceConfirmSheetState extends State<PlaceConfirmSheet> {
                               loading: (value) => "",
                               loaded: (loaded) => loaded.data.title,
                             ),
-                            onPressed: null,
+                            onPressed: () {
+                              locator<SelectedLocationFieldCubit>().onLocationFieldSelected(widget.index);
+                              locator<HomeCubit>().showWaypoints(waypoints: widget.waypoints);
+                            },
                           ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          style: IconButton.styleFrom(
+                            backgroundColor: context.theme.colorScheme.primary.withOpacity(0.12),
+                            padding: const EdgeInsets.all(10),
+                          ),
+                          icon: Icon(
+                            Icons.edit,
+                            color: context.theme.colorScheme.primary,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            locator<SelectedLocationFieldCubit>().onLocationFieldSelected(widget.index);
+                            locator<HomeCubit>().showWaypoints(waypoints: widget.waypoints);
+                          },
                         ),
                       ],
                     ),
@@ -100,6 +120,7 @@ class _PlaceConfirmSheetState extends State<PlaceConfirmSheet> {
                 const SizedBox(height: 16),
                 TextField(
                   onTap: () {
+                    locator<SelectedLocationFieldCubit>().onLocationFieldSelected(widget.index);
                     locator<HomeCubit>().showWaypoints(waypoints: widget.waypoints);
                   },
                   readOnly: true,

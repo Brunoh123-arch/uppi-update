@@ -65,8 +65,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    precacheImage(Assets.images.carTopView.provider(), context);
-    precacheImage(Assets.images.motoTopView.provider(), context);
+    try {
+      precacheImage(Assets.images.carTopView.provider(), context);
+      precacheImage(Assets.images.motoTopView.provider(), context);
+    } catch (e) {
+      debugPrint('[HomeScreen] Erro ao carregar precacheImage: $e');
+    }
   }
 
   @override

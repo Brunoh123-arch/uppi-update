@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:dartz/dartz.dart';
 import 'package:injectable/injectable.dart';
+import 'package:rider_flutter/config/locator/locator.dart';
+import 'package:flutter_common/core/blocs/settings.dart';
 import 'package:rider_flutter/core/datasources/firebase_datasource.dart';
 import 'package:rider_flutter/core/dto/calculate_fare_args.dart';
 import 'package:rider_flutter/core/dto/calculate_fare_response.dart';
@@ -21,6 +23,8 @@ import 'package:flutter_common/core/entities/place.dart';
 @LazySingleton(as: OrderRepository)
 class OrderRepositoryImpl implements OrderRepository {
   final FirebaseDatasource firebaseDatasource;
+  static String? _cachedGoogleApiKey;
+  static String? _cachedMapProvider;
 
   OrderRepositoryImpl(this.firebaseDatasource);
 
@@ -34,43 +38,48 @@ class OrderRepositoryImpl implements OrderRepository {
       int durationSeconds = 0;
       List<LatLngEntity> directions = [];
       
-      String mapProvider = 'googleMaps';
-      String googleApiKey = '';
+      String mapProvider = _cachedMapProvider ?? 'googleMaps';
+      String googleApiKey = _cachedGoogleApiKey ?? '';
       String osrmBaseUrl = 'https://router.project-osrm.org';
       
-      try {
-        final settingsRows = await firebaseDatasource.supabaseClient
-            .from('app_settings')
-            .select();
-        
-        final Map<String, String> settings = {};
-        for (final row in settingsRows) {
-          final key = row['key']?.toString() ?? '';
-          final value = row['value']?.toString() ?? '';
-          if (key.isNotEmpty) settings[key] = value;
-        }
-
-        Map<String, dynamic>? globalConfigRow;
-        for (final row in settingsRows) {
-          if (row['key'] == 'global_config') {
-            globalConfigRow = Map<String, dynamic>.from(row);
-            break;
+      if (googleApiKey.isEmpty) {
+        try {
+          final settingsRows = await firebaseDatasource.supabaseClient
+              .from('app_settings')
+              .select();
+          
+          final Map<String, String> settings = {};
+          for (final row in settingsRows) {
+            final key = row['key']?.toString() ?? '';
+            final value = row['value']?.toString() ?? '';
+            if (key.isNotEmpty) settings[key] = value;
           }
+
+          Map<String, dynamic>? globalConfigRow;
+          for (final row in settingsRows) {
+            if (row['key'] == 'global_config') {
+              globalConfigRow = Map<String, dynamic>.from(row);
+              break;
+            }
+          }
+          
+          if (globalConfigRow != null) {
+            mapProvider = globalConfigRow['map_provider']?.toString() ?? 'googleMaps';
+            googleApiKey = globalConfigRow['google_map_api_key']?.toString() ?? '';
+          } else {
+            mapProvider = settings['map_provider'] ?? 'googleMaps';
+            googleApiKey = settings['google_map_api_key'] ?? '';
+          }
+          
+          _cachedGoogleApiKey = googleApiKey;
+          _cachedMapProvider = mapProvider;
+
+          if (settings['osrm_routing_url'] != null && settings['osrm_routing_url']!.isNotEmpty) {
+            osrmBaseUrl = settings['osrm_routing_url']!.replaceAll(RegExp(r'/$'), '');
+          }
+        } catch (e) {
+          debugPrint('[Rider-OrderRepo] Error loading app settings: $e');
         }
-        
-        if (globalConfigRow != null) {
-          mapProvider = globalConfigRow['map_provider']?.toString() ?? 'googleMaps';
-          googleApiKey = globalConfigRow['google_map_api_key']?.toString() ?? '';
-        } else {
-          mapProvider = settings['map_provider'] ?? 'googleMaps';
-          googleApiKey = settings['google_map_api_key'] ?? '';
-        }
-        
-        if (settings['osrm_routing_url'] != null && settings['osrm_routing_url']!.isNotEmpty) {
-          osrmBaseUrl = settings['osrm_routing_url']!.replaceAll(RegExp(r'/$'), '');
-        }
-      } catch (e) {
-        debugPrint('[Rider-OrderRepo] Error loading app settings: $e');
       }
 
       bool useGoogleMaps = mapProvider == 'googleMaps';
@@ -88,7 +97,7 @@ class OrderRepositoryImpl implements OrderRepository {
             }
 
             debugPrint('[Google-Rider] Requesting directions: $url');
-            final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 8));
+            final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 3));
             if (response.statusCode == 200) {
               final directionsData = json.decode(response.body);
               if (directionsData['status'] == 'OK' && directionsData['routes'] != null && (directionsData['routes'] as List).isNotEmpty) {

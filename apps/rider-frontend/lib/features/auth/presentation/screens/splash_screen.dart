@@ -34,54 +34,54 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _initiateNavigation() async {
-    debugPrint("UPPI BRASIL [SplashScreen] _initiateNavigation iniciada");
+    debugPrint("UPPI [SplashScreen] _initiateNavigation iniciada");
     final minTime = Future.delayed(const Duration(milliseconds: 1500));
     final appMode = context.read<AppModeCubit>().state;
-    debugPrint("UPPI BRASIL [SplashScreen] Modo atual do App: $appMode");
+    debugPrint("UPPI [SplashScreen] Modo atual do App: $appMode");
 
     if (appMode == AppMode.rider) {
       final authBloc = locator<rider_auth.AuthBloc>();
       debugPrint(
-          "UPPI BRASIL [SplashScreen] Aguardando sessionRestored para Rider...");
+          "UPPI [SplashScreen] Aguardando sessionRestored para Rider...");
       try {
         await authBloc.sessionRestored.future.timeout(
           const Duration(seconds: 2),
           onTimeout: () {
             debugPrint(
-                "UPPI BRASIL [SplashScreen] Timeout ao restaurar sessão Rider");
+                "UPPI [SplashScreen] Timeout ao restaurar sessão Rider");
             return false;
           },
         );
       } catch (e) {
         debugPrint(
-            "UPPI BRASIL [SplashScreen] Erro ao restaurar sessão Rider: $e");
+            "UPPI [SplashScreen] Erro ao restaurar sessão Rider: $e");
       }
     } else if (appMode == AppMode.driver) {
       final authBloc = driver_locator.locator<driver_auth.AuthBloc>();
       debugPrint(
-          "UPPI BRASIL [SplashScreen] Aguardando sessionRestored para Driver...");
+          "UPPI [SplashScreen] Aguardando sessionRestored para Driver...");
       try {
         await authBloc.sessionRestored.future.timeout(
           const Duration(seconds: 2),
           onTimeout: () {
             debugPrint(
-                "UPPI BRASIL [SplashScreen] Timeout ao restaurar sessão Driver");
+                "UPPI [SplashScreen] Timeout ao restaurar sessão Driver");
             return false;
           },
         );
       } catch (e) {
         debugPrint(
-            "UPPI BRASIL [SplashScreen] Erro ao restaurar sessão Driver: $e");
+            "UPPI [SplashScreen] Erro ao restaurar sessão Driver: $e");
       }
     }
 
     await minTime;
     if (!mounted) {
       debugPrint(
-          "UPPI BRASIL [SplashScreen] Widget desmontado antes de navegar");
+          "UPPI [SplashScreen] Widget desmontado antes de navegar");
       return;
     }
-    debugPrint("UPPI BRASIL [SplashScreen] Navegando após splash");
+    debugPrint("UPPI [SplashScreen] Navegando após splash");
     _navigateAfterSplash();
   }
 
@@ -94,24 +94,24 @@ class _SplashScreenState extends State<SplashScreen> {
 
     final hasConsent = LgpdPreferences.hasGivenConsent;
     debugPrint(
-        "UPPI BRASIL [SplashScreen] LgpdPreferences.hasGivenConsent: $hasConsent");
+        "UPPI [SplashScreen] LgpdPreferences.hasGivenConsent: $hasConsent");
 
     if (!hasConsent) {
       debugPrint(
-          "UPPI BRASIL [SplashScreen] Direcionando para LgpdConsentWrapperRoute");
+          "UPPI [SplashScreen] Direcionando para LgpdConsentWrapperRoute");
       context.router.replace(const LgpdConsentWrapperRoute()).then((_) {
         debugPrint(
-            "UPPI BRASIL [SplashScreen] Navegação para LgpdConsentWrapperRoute finalizada");
+            "UPPI [SplashScreen] Navegação para LgpdConsentWrapperRoute finalizada");
       }).catchError((e) {
         debugPrint(
-            "UPPI BRASIL [SplashScreen] Erro ao ir para LgpdConsentWrapperRoute: $e");
+            "UPPI [SplashScreen] Erro ao ir para LgpdConsentWrapperRoute: $e");
       });
       return;
     }
 
     final appMode = context.read<AppModeCubit>().state;
     debugPrint(
-        "UPPI BRASIL [SplashScreen] Executando navegação baseada no AppMode: $appMode");
+        "UPPI [SplashScreen] Executando navegação baseada no AppMode: $appMode");
     if (appMode == AppMode.rider) {
       final authBloc = locator<rider_auth.AuthBloc>();
       final isDone = locator<OnboardingCubit>().isDone;
@@ -122,45 +122,45 @@ class _SplashScreenState extends State<SplashScreen> {
       );
       final isAllowed = authState.isAuthenticated || isGuest;
       debugPrint(
-          "UPPI BRASIL [SplashScreen] Rider: isDone=$isDone, isAuthenticated=${authState.isAuthenticated}, isGuest=$isGuest");
+          "UPPI [SplashScreen] Rider: isDone=$isDone, isAuthenticated=${authState.isAuthenticated}, isGuest=$isGuest");
       if (isDone) {
         if (isAllowed) {
           debugPrint(
-              "UPPI BRASIL [SplashScreen] Direcionando Rider para NavigationRoute");
+              "UPPI [SplashScreen] Direcionando Rider para NavigationRoute");
           context.router.replace(const NavigationRoute());
         } else {
           debugPrint(
-              "UPPI BRASIL [SplashScreen] Direcionando Rider para AuthRoute (sem autenticação)");
+              "UPPI [SplashScreen] Direcionando Rider para AuthRoute (sem autenticação)");
           context.router.replace(const AuthRoute());
         }
       } else {
         debugPrint(
-            "UPPI BRASIL [SplashScreen] Direcionando Rider para AuthRoute (onboarding não concluído)");
+            "UPPI [SplashScreen] Direcionando Rider para AuthRoute (onboarding não concluído)");
         context.router.replace(const AuthRoute());
       }
     } else if (appMode == AppMode.driver) {
       final authBloc = driver_locator.locator<driver_auth.AuthBloc>();
       final isDriverAuth = authBloc.state.isAuthenticated;
       debugPrint(
-          "UPPI BRASIL [SplashScreen] Driver: isAuthenticated=$isDriverAuth");
+          "UPPI [SplashScreen] Driver: isAuthenticated=$isDriverAuth");
       if (isDriverAuth) {
         debugPrint(
-            "UPPI BRASIL [SplashScreen] Direcionando Driver para DriverNavigationRoute");
+            "UPPI [SplashScreen] Direcionando Driver para DriverNavigationRoute");
         context.router.replace(const DriverNavigationRoute());
       } else {
         debugPrint(
-            "UPPI BRASIL [SplashScreen] Direcionando Driver para DriverAuthRoute");
+            "UPPI [SplashScreen] Direcionando Driver para DriverAuthRoute");
         context.router.replace(const DriverAuthRoute());
       }
     } else {
       debugPrint(
-          "UPPI BRASIL [SplashScreen] Direcionando para RoleSelectionRoute");
+          "UPPI [SplashScreen] Direcionando para RoleSelectionRoute");
       context.router.replace(const RoleSelectionRoute()).then((_) {
         debugPrint(
-            "UPPI BRASIL [SplashScreen] Navegação para RoleSelectionRoute finalizada");
+            "UPPI [SplashScreen] Navegação para RoleSelectionRoute finalizada");
       }).catchError((e) {
         debugPrint(
-            "UPPI BRASIL [SplashScreen] Erro ao ir para RoleSelectionRoute: $e");
+            "UPPI [SplashScreen] Erro ao ir para RoleSelectionRoute: $e");
       });
     }
   }

@@ -80,13 +80,14 @@ class GoogleMapProvider
   @override
   List<Polyline> parsePolyLines(List<PolyLineLayer> polyLine) {
     final List<Polyline> result = [];
-    for (final e in polyLine) {
+    for (int polyIndex = 0; polyIndex < polyLine.length; polyIndex++) {
+      final e = polyLine[polyIndex];
       final points = e.points.map((p) => LatLng(p.latitude, p.longitude)).toList();
       
       // Se a rota tiver borda definida, criamos uma linha mais grossa por baixo (zIndex menor)
       if (e.borderColor != null && e.borderStrokeWidth != null && e.borderStrokeWidth! > 0) {
         result.add(Polyline(
-          polylineId: PolylineId('${e.points.hashCode}_border'),
+          polylineId: PolylineId('route_poly_${polyIndex}_border'),
           points: points,
           color: e.borderColor!,
           width: (e.width ?? 5).toInt() + (e.borderStrokeWidth! * 2).toInt(),
@@ -106,7 +107,7 @@ class GoogleMapProvider
           final t = segmentCount == 1 ? 0.0 : i / (segmentCount - 1);
           final segColor = Color.lerp(colorStart, colorEnd, t)!;
           result.add(Polyline(
-            polylineId: PolylineId('${e.points.hashCode}_seg_$i'),
+            polylineId: PolylineId('route_poly_${polyIndex}_seg_$i'),
             points: [points[i], points[i + 1]],
             color: segColor,
             width: e.width?.toInt() ?? 5,
@@ -119,7 +120,7 @@ class GoogleMapProvider
       } else {
         // Linha principal cor sólida
         result.add(Polyline(
-          polylineId: PolylineId('${e.points.hashCode}_main'),
+          polylineId: PolylineId('route_poly_${polyIndex}_main'),
           points: points,
           color: e.color ?? (e.gradientColors.isNotEmpty ? e.gradientColors.first : Colors.blue),
           width: e.width?.toInt() ?? 5,

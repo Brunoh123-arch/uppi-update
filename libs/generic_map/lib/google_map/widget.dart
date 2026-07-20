@@ -341,7 +341,7 @@ class _GoogleMapMapViewState extends State<GoogleMapView>
           minMaxZoomPreference: const MinMaxZoomPreference(3, 20),
           rotateGesturesEnabled: true,
           webCameraControlEnabled: false,
-          trafficEnabled: true,
+          trafficEnabled: false,
           buildingsEnabled: false,
           onMapCreated: (controller) {
             // Apply dark style if needed

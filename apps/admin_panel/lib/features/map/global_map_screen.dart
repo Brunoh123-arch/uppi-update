@@ -1,8 +1,9 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_map/flutter_map.dart';
+import 'package:generic_map/generic_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_common/core/color_palette/color_palette.dart';
 
@@ -14,7 +15,7 @@ class GlobalMapScreen extends StatefulWidget {
 }
 
 class _GlobalMapScreenState extends State<GlobalMapScreen> {
-  final MapController _mapController = MapController();
+  MapViewController? _mapController;
   
   // Dados de motoristas vindos da tabela driver_locations (persistido)
   final Map<String, Map<String, dynamic>> _driverPins = {};
@@ -31,6 +32,10 @@ class _GlobalMapScreenState extends State<GlobalMapScreen> {
 
   bool _isLoading = true;
   bool _hasCentered = false;
+
+  final _searchController = TextEditingController();
+  List<Map<String, dynamic>> _searchResults = [];
+  bool _isSearching = false;
   
   StreamSubscription? _locationSubscription;
   StreamSubscription? _ridesSubscription;
@@ -46,20 +51,21 @@ class _GlobalMapScreenState extends State<GlobalMapScreen> {
     _startSurgeZonesListener();
     _fetchHeatmap();
     _fetchSurgeZones();
-    // Refresh periódico a cada 30s apenas como safety net para o heatmap
+    // Refresh periódico a cada 30s apenas como safety net para o heatmap e posições
     _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       if (_showHeatmap) _fetchHeatmap();
+      _refreshLocations();
     });
   }
 
   @override
   void dispose() {
+    _searchController.dispose();
     _locationSubscription?.cancel();
     _ridesSubscription?.cancel();
     _broadcastChannel?.unsubscribe();
     _surgeZonesRealtimeChannel?.unsubscribe();
     _refreshTimer?.cancel();
-    _streamReconnectTimer?.cancel();
     _broadcastReconnectTimer?.cancel();
     super.dispose();
   }
@@ -205,48 +211,12 @@ class _GlobalMapScreenState extends State<GlobalMapScreen> {
     return LatLng(latSum / points.length, lngSum / points.length);
   }
 
-  // 1. Stream da tabela driver_locations (INSERT/UPDATE) com reconexão exponencial
-  Timer? _streamReconnectTimer;
-  int _streamReconnectDelay = 2; // Começa com 2s
-
+  // 1. Carrega posições iniciais
   void _startRealtimeLocationStream() {
     if (!mounted) return;
-    setState(() => _isLoading = true);
     
-    _locationSubscription?.cancel();
-    _locationSubscription = Supabase.instance.client
-        .from('driver_locations')
-        .stream(primaryKey: ['driver_id'])
-        .listen((List<Map<String, dynamic>> data) {
-          _streamReconnectDelay = 2; // Reseta no sucesso
-          if (mounted) {
-            setState(() {
-              for (var d in data) {
-                final driverId = d['driver_id']?.toString() ?? '';
-                if (driverId.isNotEmpty) {
-                  _driverPins[driverId] = d;
-                }
-              }
-              _isLoading = false;
-            });
-            _autoCenterIfNeeded();
-          }
-        }, onError: (error) {
-          debugPrint('Error loading realtime driver locations: $error');
-          if (mounted) setState(() => _isLoading = false);
-          
-          // Fallback: tenta carregar do profiles
-          _loadFromProfiles();
-
-          // Reconexão exponencial
-          _streamReconnectTimer?.cancel();
-          if (mounted) {
-            _streamReconnectTimer = Timer(Duration(seconds: _streamReconnectDelay), () {
-              _streamReconnectDelay = (_streamReconnectDelay * 2).clamp(2, 30);
-              _startRealtimeLocationStream();
-            });
-          }
-        });
+    // Carrega posições iniciais dos motoristas
+    _refreshLocations();
 
     _ridesSubscription?.cancel();
     _ridesSubscription = Supabase.instance.client
@@ -396,15 +366,23 @@ class _GlobalMapScreenState extends State<GlobalMapScreen> {
       
       if (mounted) {
         setState(() {
-          for (var d in data) {
-            final driverId = d['driver_id']?.toString() ?? '';
-            if (driverId.isNotEmpty) {
-              _driverPins[driverId] = d;
+          if (data.isNotEmpty) {
+            for (var d in data) {
+              final driverId = d['driver_id']?.toString() ?? '';
+              if (driverId.isNotEmpty) {
+                _driverPins[driverId] = d;
+              }
             }
+          } else {
+            _loadFromProfiles();
           }
+          _isLoading = false;
         });
+        _autoCenterIfNeeded();
       }
-    } catch (_) {}
+    } catch (_) {
+      _loadFromProfiles();
+    }
   }
 
   void _autoCenterIfNeeded() {
@@ -416,187 +394,550 @@ class _GlobalMapScreenState extends State<GlobalMapScreen> {
     final lng = (first['lng'] as num?)?.toDouble() ?? 0;
     if (lat != 0 && lng != 0) {
       _hasCentered = true;
-      _mapController.move(LatLng(lat, lng), 14.0);
+      _mapController?.moveCamera(LatLng(lat, lng), 14.0);
+    }
+  }
+
+  Future<void> _showDriverDetailsDialog(String driverId) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // 1. Fetch profile details
+      final profileRes = await Supabase.instance.client
+          .from('profiles')
+          .select('full_name, phone, phone_number, status')
+          .eq('id', driverId)
+          .maybeSingle();
+
+      // 2. Fetch driver documents details (vehicle plate and model)
+      final docRes = await Supabase.instance.client
+          .from('driver_documents')
+          .select('vehicle_plate, vehicle_model, vehicle_category')
+          .eq('driver_id', driverId)
+          .maybeSingle();
+
+      if (mounted) Navigator.pop(context); // Dismiss loading spinner
+
+      if (profileRes == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Motorista nao encontrado.")));
+        }
+        return;
+      }
+
+      final name = profileRes['full_name']?.toString() ?? 'Motorista';
+      final phone = profileRes['phone'] ?? profileRes['phone_number'] ?? 'Nao informado';
+      final status = profileRes['status']?.toString() ?? 'online';
+      
+      final plate = docRes?['vehicle_plate']?.toString() ?? '';
+      final model = docRes?['vehicle_model']?.toString() ?? '';
+      final category = docRes?['vehicle_category']?.toString() ?? '';
+      final vehicleText = model.isNotEmpty ? "$model ($plate)" : "Nao cadastrado";
+
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (ctx) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF1E293B),
+              title: Row(
+                children: [
+                  const Icon(Icons.local_taxi, color: Colors.orangeAccent),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      name,
+                      style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("ID: $driverId", style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                  const SizedBox(height: 10),
+                  Text("Celular: $phone", style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                  const SizedBox(height: 6),
+                  Text("Veiculo: $vehicleText", style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                  if (category.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text("Categoria: ${category.toUpperCase()}", style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                  ],
+                  const SizedBox(height: 10),
+                  Text(
+                    "Status do Perfil: ${status.toUpperCase()}",
+                    style: TextStyle(
+                      color: (status == 'online' || status == 'approved' || status == 'active') ? Colors.greenAccent : Colors.orangeAccent,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text("Fechar", style: TextStyle(color: Color(0xFF94A3B8))),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                  onPressed: () async {
+                    Navigator.pop(ctx);
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (confirmCtx) => AlertDialog(
+                        backgroundColor: const Color(0xFF1E293B),
+                        title: const Text("Desconectar Motorista", style: TextStyle(color: Colors.white)),
+                        content: const Text("Tem certeza que deseja forcar o motorista a ficar Offline?"),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(confirmCtx, false), child: const Text("Nao")),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                            onPressed: () => Navigator.pop(confirmCtx, true),
+                            child: const Text("Sim, Forcar Offline"),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirm == true) {
+                      try {
+                        await Supabase.instance.client
+                            .from('driver_locations')
+                            .delete()
+                            .eq('driver_id', driverId);
+                        
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                            content: Text("✅ Motorista desconectado do mapa com sucesso!"),
+                            backgroundColor: Colors.green,
+                          ));
+                          _refreshLocations();
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("❌ Erro: $e"), backgroundColor: Colors.red));
+                        }
+                      }
+                    }
+                  },
+                  child: const Text("Forcar Offline", style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro ao carregar detalhes: $e"), backgroundColor: Colors.red));
+      }
+    }
+  }
+
+  Future<void> _showPassengerDetailsDialog(String rideId) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final rideRes = await Supabase.instance.client
+          .from('rides')
+          .select('pickup_address, dropoff_address, fare, rider_id')
+          .eq('id', rideId)
+          .maybeSingle();
+
+      if (mounted) Navigator.pop(context); // Dismiss loading spinner
+
+      if (rideRes == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Corrida nao encontrada.")));
+        }
+        return;
+      }
+
+      final riderId = rideRes['rider_id']?.toString() ?? '';
+      Map<String, dynamic>? profileRes;
+      if (riderId.isNotEmpty) {
+        profileRes = await Supabase.instance.client
+            .from('profiles')
+            .select('full_name, phone, phone_number')
+            .eq('id', riderId)
+            .maybeSingle();
+      }
+
+      final name = profileRes?['full_name']?.toString() ?? 'Passageiro';
+      final phone = profileRes?['phone'] ?? profileRes?['phone_number'] ?? 'Nao informado';
+      final pickup = rideRes['pickup_address'] ?? 'Nao informado';
+      final destination = rideRes['dropoff_address'] ?? 'Nao informado';
+      final fare = (rideRes['fare'] as num?)?.toDouble() ?? 0.0;
+
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (ctx) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF1E293B),
+              title: Row(
+                children: [
+                  const Icon(Icons.person, color: Colors.blueAccent),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      name,
+                      style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Celular: $phone", style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                  const SizedBox(height: 10),
+                  Text("Origem: $pickup", style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                  const SizedBox(height: 6),
+                  Text("Destino: $destination", style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                  const SizedBox(height: 6),
+                  Text("Valor: R\$ ${fare.toStringAsFixed(2)}", style: const TextStyle(color: Color(0xFF6C9F12), fontSize: 13, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  const Text("Status: Aguardando Motorista", style: TextStyle(color: Colors.amber, fontSize: 13, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text("Fechar", style: TextStyle(color: Color(0xFF94A3B8))),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                  onPressed: () async {
+                    Navigator.pop(ctx);
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (confirmCtx) => AlertDialog(
+                        backgroundColor: const Color(0xFF1E293B),
+                        title: const Text("Cancelar Corrida", style: TextStyle(color: Colors.white)),
+                        content: const Text("Tem certeza que deseja cancelar esta corrida do passageiro?"),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(confirmCtx, false), child: const Text("Nao")),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                            onPressed: () => Navigator.pop(confirmCtx, true),
+                            child: const Text("Sim, Cancelar"),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirm == true) {
+                      try {
+                        await Supabase.instance.client
+                            .from('rides')
+                            .update({'status': 'cancelled'})
+                            .eq('id', rideId);
+                        
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                            content: Text("✅ Corrida cancelada com sucesso!"),
+                            backgroundColor: Colors.green,
+                          ));
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("❌ Erro: $e"), backgroundColor: Colors.red));
+                        }
+                      }
+                    }
+                  },
+                  child: const Text("Cancelar Corrida", style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro ao carregar detalhes: $e"), backgroundColor: Colors.red));
+      }
+    }
+  }
+
+  void _performSearch(String query) {
+    if (query.trim().isEmpty) {
+      setState(() {
+        _searchResults = [];
+        _isSearching = false;
+      });
+      return;
+    }
+
+    final q = query.toLowerCase();
+    final results = <Map<String, dynamic>>[];
+
+    _driverPins.forEach((id, d) {
+      final name = (d['full_name'] ?? '').toString().toLowerCase();
+      final phone = (d['phone'] ?? d['phone_number'] ?? '').toString().toLowerCase();
+      if (name.contains(q) || phone.contains(q) || id.toLowerCase().contains(q)) {
+        results.add({
+          'type': 'driver',
+          'id': id,
+          'name': d['full_name'] ?? 'Motorista ($id)',
+          'subtitle': 'Motorista • ${d['vehicle_type'] ?? "Carro"}',
+          'lat': d['lat'],
+          'lng': d['lng'],
+        });
+      }
+    });
+
+    _passengerPins.forEach((id, p) {
+      if (id.toLowerCase().contains(q)) {
+        results.add({
+          'type': 'passenger',
+          'id': id,
+          'name': 'Passageiro (Corrida)',
+          'subtitle': 'ID: ${id.substring(0, 8)}',
+          'lat': p['lat'],
+          'lng': p['lng'],
+        });
+      }
+    });
+
+    setState(() {
+      _searchResults = results;
+      _isSearching = true;
+    });
+  }
+
+  void _zoomToResult(Map<String, dynamic> res) {
+    final lat = res['lat'] as double;
+    final lng = res['lng'] as double;
+    _mapController?.moveCamera(LatLng(lat, lng), 15.5);
+    
+    _searchController.clear();
+    setState(() {
+      _searchResults = [];
+      _isSearching = false;
+    });
+
+    if (res['type'] == 'driver') {
+      _showDriverDetailsDialog(res['id']);
+    } else {
+      _showPassengerDetailsDialog(res['id']);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool isMobile = MediaQuery.of(context).size.width < 768;
     final activeDrivers = _driverPins.values.where((d) {
       final lat = (d['lat'] as num?)?.toDouble() ?? 0;
       final lng = (d['lng'] as num?)?.toDouble() ?? 0;
       return lat != 0 && lng != 0;
     }).toList();
 
+    final List<CustomMarker> customMarkers = [];
+    final List<CircleMarker> circleMarkers = [];
+
+    // 1. Drivers
+    for (final d in activeDrivers) {
+      final lat = (d['lat'] as num).toDouble();
+      final lng = (d['lng'] as num).toDouble();
+      final vehicleType = d['vehicle_type']?.toString() ?? 'carro';
+      final driverId = d['driver_id']?.toString() ?? '?';
+      final name = d['full_name']?.toString() ?? (driverId.length > 8 ? driverId.substring(0, 8) : driverId);
+      
+      customMarkers.add(CustomMarker(
+        id: 'driver_$driverId',
+        position: LatLng(lat, lng),
+        width: 48,
+        height: 48,
+        widget: GestureDetector(
+          onTap: () => _showDriverDetailsDialog(driverId),
+          child: Tooltip(
+            message: '$name ($vehicleType)',
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.orange.shade800,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.orangeAccent.withOpacity(0.5),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.local_taxi,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+          ),
+        ),
+      ));
+    }
+
+    // 2. Passenger Pins
+    for (final entry in _passengerPins.entries) {
+      final p = entry.value;
+      final lat = (p['lat'] as num).toDouble();
+      final lng = (p['lng'] as num).toDouble();
+      
+      customMarkers.add(CustomMarker(
+        id: 'passenger_${entry.key}',
+        position: LatLng(lat, lng),
+        width: 48,
+        height: 48,
+        widget: GestureDetector(
+          onTap: () => _showPassengerDetailsDialog(entry.key),
+          child: Tooltip(
+            message: 'Passageiro aguardando motorista',
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.blueAccent,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blueAccent.withOpacity(0.5),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.person_pin_circle,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+          ),
+        ),
+      ));
+    }
+
+    // 3. Heatmap circles
+    if (_showHeatmap) {
+      for (int i = 0; i < _hotspots.length; i++) {
+        final h = _hotspots[i];
+        final lat = (h['lat'] as num).toDouble();
+        final lng = (h['lng'] as num).toDouble();
+        final intensity = h['intensity']?.toString() ?? 'medium';
+        
+        Color color = Colors.yellow.withOpacity(0.3);
+        if (intensity == 'high') color = Colors.orange.withOpacity(0.4);
+        if (intensity == 'extreme') color = Colors.red.withOpacity(0.5);
+
+        circleMarkers.add(CircleMarker(
+          id: 'heatmap_$i',
+          position: LatLng(lat, lng),
+          radius: 1000.0, // ~1km
+          color: color,
+          borderColor: Colors.transparent,
+          borderWidth: 0,
+        ));
+      }
+    }
+
+    // 4. Surge Zones circles and labels
+    for (final zone in _surgeZones) {
+      final points = _getSurgeZonePoints(zone);
+      if (points.isEmpty) continue;
+      final centroid = _calculateCentroid(points);
+      
+      final distance = const Distance();
+      final double radius = distance.as(LengthUnit.Meter, centroid, points.first);
+      
+      final name = zone['name'] ?? 'Zona';
+      final mult = (zone['multiplier'] as num?)?.toDouble() ?? 1.0;
+      final zoneId = zone['id']?.toString() ?? 'zone_${DateTime.now().millisecondsSinceEpoch}';
+
+      circleMarkers.add(CircleMarker(
+        id: 'surge_circle_$zoneId',
+        position: centroid,
+        radius: radius > 0 ? radius : 1000.0,
+        color: _getSurgeColor(mult),
+        borderColor: _getSurgeBorderColor(mult),
+        borderWidth: 3.0,
+      ));
+
+      customMarkers.add(CustomMarker(
+        id: 'surge_label_$zoneId',
+        position: centroid,
+        width: 140,
+        height: 36,
+        widget: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F172A).withOpacity(0.85),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: _getSurgeBorderColor(mult), width: 1.5),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black54,
+                blurRadius: 4,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.flash_on, color: _getSurgeBorderColor(mult), size: 14),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    '$name: ${mult.toStringAsFixed(2)}x',
+                    style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ));
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
       body: Stack(
         children: [
           // Map Layer
-          FlutterMap(
-            mapController: _mapController,
-            options: const MapOptions(
-              // Centraliza em Belém-PA (onde está a operação Uppi)
-              initialCenter: LatLng(-1.4558, -48.5024),
-              initialZoom: 13.0,
+          GenericMap(
+            provider: GoogleMapProvider(),
+            initialLocation: Place(
+              const LatLng(-1.2950, -47.9250),
+              'Castanhal, PA',
+              'Castanhal',
             ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.uppi.admin',
-              ),
-              if (_showHeatmap)
-                CircleLayer(
-                  circles: _hotspots.map((h) {
-                    final lat = (h['lat'] as num).toDouble();
-                    final lng = (h['lng'] as num).toDouble();
-                    final intensity = h['intensity']?.toString() ?? 'medium';
-                    
-                    Color color = Colors.yellow.withOpacity(0.3);
-                    if (intensity == 'high') color = Colors.orange.withOpacity(0.4);
-                    if (intensity == 'extreme') color = Colors.red.withOpacity(0.5);
-
-                    return CircleMarker(
-                      point: LatLng(lat, lng),
-                      color: color,
-                      borderStrokeWidth: 0,
-                      useRadiusInMeter: true,
-                      radius: 1000, // ~1km zone
-                    );
-                  }).toList(),
-                ),
-              PolygonLayer(
-                polygons: _surgeZones.map((zone) {
-                  final points = _getSurgeZonePoints(zone);
-                  if (points.length < 3) return null;
-                  final mult = (zone['multiplier'] as num?)?.toDouble() ?? 1.0;
-                  return Polygon(
-                    points: points,
-                    color: _getSurgeColor(mult),
-                    borderColor: _getSurgeBorderColor(mult),
-                    borderStrokeWidth: 3,
-                    isFilled: true,
-                  );
-                }).whereType<Polygon>().toList(),
-              ),
-              MarkerLayer(
-                markers: [
-                  ...activeDrivers.map((d) {
-                    final lat = (d['lat'] as num).toDouble();
-                    final lng = (d['lng'] as num).toDouble();
-                    final vehicleType = d['vehicle_type']?.toString() ?? 'carro';
-                    final driverId = d['driver_id']?.toString() ?? '?';
-                    final name = d['full_name']?.toString() ?? driverId.substring(0, 8);
-                    
-                    return Marker(
-                      point: LatLng(lat, lng),
-                      width: 48,
-                      height: 48,
-                      child: Tooltip(
-                        message: '$name ($vehicleType)',
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.orange.shade800,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.orangeAccent.withOpacity(0.5),
-                                blurRadius: 8,
-                                spreadRadius: 2,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.local_taxi,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                  ..._passengerPins.values.map((p) {
-                    final lat = (p['lat'] as num).toDouble();
-                    final lng = (p['lng'] as num).toDouble();
-                    return Marker(
-                      point: LatLng(lat, lng),
-                      width: 48,
-                      height: 48,
-                      child: Tooltip(
-                        message: 'Passageiro aguardando motorista',
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.blueAccent,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.blueAccent.withOpacity(0.5),
-                                blurRadius: 8,
-                                spreadRadius: 2,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.person_pin_circle,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                  ..._surgeZones.map((zone) {
-                    final points = _getSurgeZonePoints(zone);
-                    if (points.isEmpty) return null;
-                    final centroid = _calculateCentroid(points);
-                    final name = zone['name'] ?? 'Zona';
-                    final mult = (zone['multiplier'] as num?)?.toDouble() ?? 1.0;
-                    return Marker(
-                      point: centroid,
-                      width: 140,
-                      height: 36,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0F172A).withOpacity(0.85),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: _getSurgeBorderColor(mult), width: 1.5),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black54,
-                              blurRadius: 4,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.flash_on, color: _getSurgeBorderColor(mult), size: 14),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  '$name: ${mult.toStringAsFixed(2)}x',
-                                  style: GoogleFonts.outfit(
-                                    color: Colors.white,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }).whereType<Marker>().toList(),
-                ],
-              ),
-            ],
+            interactive: true,
+            myLocationEnabled: false,
+            markers: customMarkers,
+            circleMarkers: circleMarkers,
+            onControllerReady: (controller) {
+              _mapController = controller;
+            },
           ),
 
           // Top Bar
@@ -650,6 +991,68 @@ class _GlobalMapScreenState extends State<GlobalMapScreen> {
                     label: '${activeDrivers.length} motoristas no mapa',
                     color: Colors.orangeAccent,
                   ),
+                ],
+              ),
+            ),
+          ),
+
+          // Floating Command Center Search
+          Positioned(
+            top: 90,
+            left: isMobile ? 16 : 32,
+            right: isMobile ? 16 : null,
+            child: Container(
+              width: isMobile ? null : 360,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B).withOpacity(0.95),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF334155)),
+                boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 10)],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _searchController,
+                    onChanged: _performSearch,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: InputDecoration(
+                      hintText: 'Buscar motorista no mapa...',
+                      hintStyle: const TextStyle(color: Colors.white30),
+                      prefixIcon: const Icon(Icons.search, color: Colors.white54, size: 18),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, color: Colors.white54, size: 16),
+                              onPressed: () {
+                                _searchController.clear();
+                                _performSearch('');
+                              },
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                  if (_isSearching && _searchResults.isNotEmpty) ...[
+                    const Divider(color: Colors.white10, height: 1),
+                    Container(
+                      constraints: const BoxConstraints(maxHeight: 200),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _searchResults.length,
+                        itemBuilder: (context, index) {
+                          final res = _searchResults[index];
+                          return ListTile(
+                            dense: true,
+                            title: Text(res['name'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            subtitle: Text(res['subtitle'], style: const TextStyle(color: Colors.white54)),
+                            trailing: const Icon(Icons.arrow_forward_ios, size: 10, color: Colors.white30),
+                            onTap: () => _zoomToResult(res),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -741,7 +1144,7 @@ class _GlobalMapScreenState extends State<GlobalMapScreen> {
                   onTap: () {
                     if (activeDrivers.isNotEmpty) {
                       final first = activeDrivers.first;
-                      _mapController.move(
+                      _mapController?.moveCamera(
                         LatLng(
                           (first['lat'] as num).toDouble(),
                           (first['lng'] as num).toDouble(),
@@ -749,9 +1152,16 @@ class _GlobalMapScreenState extends State<GlobalMapScreen> {
                         14.0,
                       );
                     } else {
-                      _mapController.move(const LatLng(-1.4558, -48.5024), 13.0);
+                      _mapController?.moveCamera(const LatLng(-1.2950, -47.9250), 13.0);
                     }
                   },
+                ),
+                const SizedBox(width: 12),
+                _ControlButton(
+                  icon: Icons.flash_on,
+                  label: 'Tarifa Dinâmica',
+                  color: Colors.amberAccent,
+                  onTap: () => _showSurgeManagementModal(context),
                 ),
               ],
             ),
@@ -762,6 +1172,274 @@ class _GlobalMapScreenState extends State<GlobalMapScreen> {
             const Center(child: CircularProgressIndicator()),
         ],
       ),
+    );
+  }
+
+  String _generateCircularWkt(double centerLat, double centerLng, double radiusInMeters) {
+    const int pointsCount = 32;
+    final List<String> coordinates = [];
+    
+    for (int i = 0; i <= pointsCount; i++) {
+      final double angle = (i * 2 * math.pi) / pointsCount;
+      final double deltaLat = (radiusInMeters * math.cos(angle)) / 111320.0;
+      final double latRad = centerLat * math.pi / 180.0;
+      final double deltaLng = (radiusInMeters * math.sin(angle)) / (111320.0 * math.cos(latRad));
+      
+      final double pointLat = centerLat + deltaLat;
+      final double pointLng = centerLng + deltaLng;
+      
+      coordinates.add('${pointLng.toStringAsFixed(6)} ${pointLat.toStringAsFixed(6)}');
+    }
+    
+    return 'POLYGON((${coordinates.join(', ')}))';
+  }
+
+  Future<bool?> _showCreateSurgeDialog(BuildContext context) async {
+    final nameCtrl = TextEditingController();
+    final multCtrl = TextEditingController(text: '1.25');
+    final radiusCtrl = TextEditingController(text: '1000');
+    final durationCtrl = TextEditingController(text: '60');
+    
+    final center = await _mapController?.getCenter() ?? const LatLng(-1.2950, -47.9250);
+    
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1E293B),
+          title: const Text('Nova Zona Dinâmica', style: TextStyle(color: Colors.white)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameCtrl,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: 'Nome da Zona (Ex: Centro Castanhal)',
+                    labelStyle: TextStyle(color: Colors.white70),
+                  ),
+                ),
+                TextField(
+                  controller: multCtrl,
+                  style: const TextStyle(color: Colors.white),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: 'Multiplicador (Ex: 1.50)',
+                    labelStyle: TextStyle(color: Colors.white70),
+                  ),
+                ),
+                TextField(
+                  controller: radiusCtrl,
+                  style: const TextStyle(color: Colors.white),
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Raio de Alcance (metros)',
+                    labelStyle: TextStyle(color: Colors.white70),
+                  ),
+                ),
+                TextField(
+                  controller: durationCtrl,
+                  style: const TextStyle(color: Colors.white),
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Duração Ativa (minutos)',
+                    labelStyle: TextStyle(color: Colors.white70),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancelar', style: TextStyle(color: Colors.white38)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF096EFF)),
+              onPressed: () async {
+                final name = nameCtrl.text.trim();
+                final mult = double.tryParse(multCtrl.text) ?? 1.25;
+                final radius = double.tryParse(radiusCtrl.text) ?? 1000.0;
+                final duration = int.tryParse(durationCtrl.text) ?? 60;
+                
+                if (name.isEmpty) return;
+                
+                final wkt = _generateCircularWkt(center.latitude, center.longitude, radius);
+                
+                try {
+                  await Supabase.instance.client.from('surge_zones').insert({
+                    'name': name,
+                    'multiplier': mult,
+                    'boundary': wkt,
+                    'is_active': true,
+                    'expires_at': DateTime.now().toUtc().add(Duration(minutes: duration)).toIso8601String(),
+                  });
+                  Navigator.pop(ctx, true);
+                } catch (e) {
+                  debugPrint('Erro ao criar surge zone: $e');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Erro: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              },
+              child: const Text('Criar Zona', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSurgeManagementModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF1E293B),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: EdgeInsets.only(
+                top: 24,
+                left: 24,
+                right: 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Gestão de Tarifa Dinâmica (Surge)',
+                        style: GoogleFonts.outfit(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white60),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF096EFF),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    ),
+                    icon: const Icon(Icons.add, color: Colors.white),
+                    label: const Text('Criar Nova Zona Dinâmica', style: TextStyle(color: Colors.white)),
+                    onPressed: () async {
+                      final created = await _showCreateSurgeDialog(context);
+                      if (created == true) {
+                        _fetchSurgeZones();
+                        setModalState(() {});
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Zonas Ativas no Mapa:',
+                    style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white70),
+                  ),
+                  const SizedBox(height: 10),
+                  if (_surgeZones.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Text('Nenhuma zona de tarifa dinâmica ativa.', style: TextStyle(color: Colors.white38)),
+                    )
+                  else
+                    Container(
+                      constraints: const BoxConstraints(maxHeight: 250),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _surgeZones.length,
+                        itemBuilder: (context, index) {
+                          final zone = _surgeZones[index];
+                          final id = zone['id']?.toString() ?? '';
+                          final name = zone['name']?.toString() ?? 'Sem nome';
+                          final multiplier = zone['multiplier']?.toString() ?? '1.0';
+                          final expiresAt = zone['expires_at'] != null 
+                              ? DateTime.parse(zone['expires_at'].toString()).toLocal()
+                              : null;
+                              
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0F172A),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.amberAccent.withOpacity(0.3)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.flash_on, color: Colors.amberAccent),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                      Text(
+                                        'Multiplicador: ${multiplier}x' + 
+                                        (expiresAt != null ? ' | Expira: ${expiresAt.hour.toString().padLeft(2, '0')}:${expiresAt.minute.toString().padLeft(2, '0')}' : ''),
+                                        style: const TextStyle(color: Colors.white70, fontSize: 13),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                                  onPressed: () async {
+                                    final confirm = await showDialog<bool>(
+                                      context: context,
+                                      builder: (ctx) => AlertDialog(
+                                        backgroundColor: const Color(0xFF1E293B),
+                                        title: const Text('Deletar Zona', style: TextStyle(color: Colors.white)),
+                                        content: const Text('Tem certeza que deseja remover esta zona de preço dinâmico?', style: TextStyle(color: Colors.white70)),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(ctx, false),
+                                            child: const Text('Cancelar', style: TextStyle(color: Colors.white38)),
+                                          ),
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(ctx, true),
+                                            child: const Text('Excluir', style: TextStyle(color: Colors.redAccent)),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                    if (confirm == true) {
+                                      await Supabase.instance.client
+                                          .from('surge_zones')
+                                          .delete()
+                                          .eq('id', id);
+                                      _fetchSurgeZones();
+                                      setModalState(() {});
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

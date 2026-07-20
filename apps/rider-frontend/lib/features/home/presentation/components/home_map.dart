@@ -58,13 +58,10 @@ class _HomeMapState extends State<HomeMap> {
     super.dispose();
   }
 
+  String? _lastFitRouteHash;
+
   void _onIsPreviewExpandedChanged() {
     if (mounted) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          setState(() {});
-        }
-      });
       final state = locator<HomeCubit>().state;
       state.mapOrNull(
         ridePreview: (value) {
@@ -78,28 +75,12 @@ class _HomeMapState extends State<HomeMap> {
   }
 
   void _fitRidePreviewBounds(List<LatLng> points) {
-    debugPrint("UPPI BRASIL - _fitRidePreviewBounds: points length = ${points.length}, mapViewController is null: ${mapViewController == null}");
     if (points.length < 2) return;
+    final currentHash = "${points.first.latitude.toStringAsFixed(4)},${points.first.longitude.toStringAsFixed(4)}-${points.last.latitude.toStringAsFixed(4)},${points.last.longitude.toStringAsFixed(4)}-${points.length}";
+    if (_lastFitRouteHash == currentHash) return;
+    _lastFitRouteHash = currentHash;
 
-    // O SDK nativo do Google Maps aplica o padding de forma assíncrona.
-    // Chamamos fitBounds em 3 momentos distintos para garantir que o
-    // SDK já processou o padding do bottom sheet antes de animar a câmera.
-
-    // 1ª tentativa: após o mapa estar inicializado
-    Future.delayed(const Duration(milliseconds: 800), () {
-      debugPrint("UPPI BRASIL - fitBounds 1st try (800ms): mounted=$mounted, mapViewController is null: ${mapViewController == null}");
-      if (mounted) mapViewController?.fitBounds(points);
-    });
-
-    // 2ª tentativa: após a transição do card completar
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      debugPrint("UPPI BRASIL - fitBounds 2nd try (1500ms): mounted=$mounted, mapViewController is null: ${mapViewController == null}");
-      if (mounted) mapViewController?.fitBounds(points);
-    });
-
-    // 3ª tentativa: garantia final com padding nativo 100% aplicado
-    Future.delayed(const Duration(milliseconds: 2500), () {
-      debugPrint("UPPI BRASIL - fitBounds 3rd try (2500ms): mounted=$mounted, mapViewController is null: ${mapViewController == null}");
+    Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) mapViewController?.fitBounds(points);
     });
   }
@@ -182,7 +163,9 @@ class _HomeMapState extends State<HomeMap> {
         if (!wasWelcome && isWelcome) {
           _hasMovedToCurrentLocation = false;
         }
-        return true;
+        return previous.runtimeType != current.runtimeType ||
+            previous.markers != current.markers ||
+            previous.polylines != current.polylines;
       },
       listener: (context, state) {
         state.mapOrNull(

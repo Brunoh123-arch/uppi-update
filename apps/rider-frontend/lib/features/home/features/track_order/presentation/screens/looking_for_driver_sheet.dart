@@ -14,6 +14,7 @@ import 'package:rider_flutter/core/blocs/location.dart';
 import 'package:rider_flutter/core/entities/order.dart';
 
 import '../blocs/track_order.dart';
+import 'package:rider_flutter/core/widgets/waiting_ad_banner.dart';
 
 class LookingForDriverSheet extends StatefulWidget {
   const LookingForDriverSheet({super.key});
@@ -182,6 +183,11 @@ class _LookingForDriverSheetState extends State<LookingForDriverSheet> {
                   ),
                 ),
               ),
+              
+              const SizedBox(height: 16),
+              
+              // Banner de anúncios locais (monetização R$ 0)
+              const WaitingAdBanner(),
               
               const SizedBox(height: 24),
               

@@ -164,8 +164,10 @@ class CouponsManagementScreen extends StatelessWidget {
 
               return GridView.builder(
                 padding: const EdgeInsets.all(32),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: MediaQuery.of(context).size.width < 768 
+                      ? (MediaQuery.of(context).size.width < 450 ? 1 : 2)
+                      : 3,
                   crossAxisSpacing: 24,
                   mainAxisSpacing: 24,
                   childAspectRatio: 1.9,

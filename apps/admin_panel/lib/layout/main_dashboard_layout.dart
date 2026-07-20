@@ -7,6 +7,8 @@ import 'menu_items.dart';
 import 'widgets/sidebar_item.dart';
 import 'widgets/sos_alert_dialog.dart';
 import '../features/kyc/kyc_approval_screen.dart';
+import '../core/utils/admin_translations.dart';
+import '../app.dart';
 
 // ─────────────────────────────────────────────
 // Layout Principal do Dashboard
@@ -360,7 +362,7 @@ class _MainDashboardLayoutState extends State<MainDashboardLayout> {
                           final isSelected = index == _selectedIndex;
                           return SidebarItem(
                             icon: isSelected ? menu.selectedIcon : menu.icon,
-                            label: menu.label,
+                            label: adminTranslate(context, menu.label),
                             isSelected: isSelected,
                             isExpanded: true,
                             onTap: () {
@@ -374,7 +376,7 @@ class _MainDashboardLayoutState extends State<MainDashboardLayout> {
                   
                   const Divider(color: Colors.white10, height: 1),
                   
-                  // 3. TRAILING (Email e Logout)
+                  // 3. TRAILING (Email, Idioma e Logout)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16, top: 16, left: 8, right: 8),
                     child: Column(
@@ -386,9 +388,54 @@ class _MainDashboardLayoutState extends State<MainDashboardLayout> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 8),
+                        ValueListenableBuilder<Locale>(
+                          valueListenable: adminLocaleNotifier,
+                          builder: (context, currentLocale, child) {
+                            return PopupMenuButton<Locale>(
+                              icon: const Icon(Icons.g_translate_rounded, color: Colors.white70, size: 20),
+                              tooltip: adminTranslate(context, 'Idioma do Painel'),
+                              onSelected: (Locale locale) {
+                                adminLocaleNotifier.value = locale;
+                              },
+                              itemBuilder: (BuildContext context) => <PopupMenuEntry<Locale>>[
+                                const PopupMenuItem<Locale>(
+                                  value: Locale('pt'),
+                                  child: Row(
+                                    children: [
+                                      Text('🇧🇷', style: TextStyle(fontSize: 16)),
+                                      SizedBox(width: 8),
+                                      Text('Português'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem<Locale>(
+                                  value: Locale('en'),
+                                  child: Row(
+                                    children: [
+                                      Text('🇺🇸', style: TextStyle(fontSize: 16)),
+                                      SizedBox(width: 8),
+                                      Text('English'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem<Locale>(
+                                  value: Locale('es'),
+                                  child: Row(
+                                    children: [
+                                      Text('🇪🇸', style: TextStyle(fontSize: 16)),
+                                      SizedBox(width: 8),
+                                      Text('Español'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 8),
                         IconButton(
                           icon: const Icon(Icons.logout, color: Colors.redAccent),
-                          tooltip: 'Sair do Painel',
+                          tooltip: adminTranslate(context, 'Sair do Painel'),
                           onPressed: () async {
                             await Supabase.instance.client.auth.signOut();
                           },

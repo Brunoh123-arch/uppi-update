@@ -134,10 +134,18 @@ class _RiderGrid extends StatelessWidget {
           );
         }
         
+        final double width = MediaQuery.of(context).size.width;
+        final bool isMobile = width < 768;
+        final int crossAxisCount = isMobile ? (width < 450 ? 1 : 2) : 3;
+        final double childAspectRatio = isMobile ? (width < 450 ? 1.05 : 0.85) : 0.85;
+
         return GridView.builder(
           padding: const EdgeInsets.all(32),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3, crossAxisSpacing: 24, mainAxisSpacing: 24, childAspectRatio: 0.85,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: 24,
+            mainAxisSpacing: 24,
+            childAspectRatio: childAspectRatio,
           ),
           itemCount: riders.length,
           itemBuilder: (context, i) => _RiderCard(rider: riders[i]),

@@ -91,7 +91,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       if (!isSaving) {
         _radiusCtrl.text = settings['driver_search_radius'] ?? '10';
-        _commissionCtrl.text = settings['commission_rate'] ?? '15';
+        _commissionCtrl.text = settings['commission_rate'] ?? '0';
         _currencyCtrl.text = settings['currency'] ?? 'BRL';
         _mapProvider = settings['map_provider'] ?? 'googleMaps';
         _surgeCtrl.text = settings['global_surge_multiplier'] ?? '1.0';
@@ -120,7 +120,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final entries = {
         'driver_search_radius': (int.tryParse(_radiusCtrl.text) ?? 10).toString(),
-        'commission_rate': (double.tryParse(_commissionCtrl.text) ?? 15.0).toString(),
+        'commission_rate': (double.tryParse(_commissionCtrl.text) ?? 0.0).toString(),
         'currency': _currencyCtrl.text.toUpperCase(),
         'map_provider': _mapProvider,
         'global_surge_multiplier': (double.tryParse(_surgeCtrl.text) ?? 1.0).toString(),
@@ -154,7 +154,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           .from('app_settings')
           .update({
             'driver_search_radius': int.tryParse(_radiusCtrl.text) ?? 10,
-            'commission_rate': double.tryParse(_commissionCtrl.text) ?? 15.0,
+            'commission_rate': double.tryParse(_commissionCtrl.text) ?? 0.0,
             'currency': _currencyCtrl.text.toUpperCase(),
             'map_provider': _mapProvider,
             'global_surge_multiplier': double.tryParse(_surgeCtrl.text) ?? 1.0,

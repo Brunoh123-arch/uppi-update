@@ -36,13 +36,15 @@ class _EnterNumberFormState extends State<EnterNumberForm> {
         );
       } else {
         const webClientId = '408478040204-2goc9kfqm9sadcci2ue5gkculo21tiif.apps.googleusercontent.com';
-        
-        final googleSignIn = google_sign_in.GoogleSignIn.instance;
-        await googleSignIn.initialize(serverClientId: webClientId);
-        
-        final googleUser = await googleSignIn.authenticate();
 
-        final googleAuth = googleUser.authentication;
+        // API clássica v6: não requer oauth_client Android por SHA-1.
+        final googleSignIn = google_sign_in.GoogleSignIn(serverClientId: webClientId);
+        await googleSignIn.signOut(); // Limpa sessões antigas
+
+        final googleUser = await googleSignIn.signIn();
+        if (googleUser == null) return; // Usuário cancelou
+
+        final googleAuth = await googleUser.authentication;
         final idToken = googleAuth.idToken;
 
         if (idToken == null) {

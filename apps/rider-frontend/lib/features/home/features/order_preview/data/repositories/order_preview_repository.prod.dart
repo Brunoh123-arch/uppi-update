@@ -143,7 +143,7 @@ class OrderPreviewRepositoryImpl implements OrderPreviewRepository {
       final paymentMethodStr = args.paymentMethod.map(
         cash: (_) => 'cash',
         wallet: (_) => 'wallet',
-        paymentGateway: (g) => 'credit_card',
+        paymentGateway: (g) => g.paymentGateway.id == 'pix' ? 'pix' : 'credit_card',
         savedPaymentMethod: (s) => 'credit_card',
       );
 

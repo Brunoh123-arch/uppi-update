@@ -12,6 +12,8 @@ import 'package:flutter_common/core/presentation/markers/app_marker_pickup.dart'
 import 'package:flutter_common/core/presentation/markers/app_marker_drop_off.dart';
 import 'package:flutter_common/core/presentation/markers/app_marker_stop.dart';
 
+import 'package:rider_flutter/features/home/features/waypoints/presentation/blocs/selected_location_field.dart';
+
 import 'home.dart';
 
 extension HomeStateX on HomeState {
@@ -42,6 +44,7 @@ extension HomeStateX on HomeState {
         },
         inputWaypoints: (value) {
           void onTap() {
+            locator<SelectedLocationFieldCubit>().onLocationFieldSelected(1);
             locator<HomeCubit>().showWaypoints(waypoints: value.waypoints);
           }
           return value.waypoints.nonNulls.toList().markersWithOnTap(onTap: onTap);
@@ -67,6 +70,7 @@ extension HomeStateX on HomeState {
         },
         ridePreview: (value) {
           void onTap() {
+            locator<SelectedLocationFieldCubit>().onLocationFieldSelected(1);
             locator<HomeCubit>().showWaypoints(waypoints: value.waypoints);
           }
           final markers = <CustomMarker>[];

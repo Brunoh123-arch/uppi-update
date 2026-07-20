@@ -29,16 +29,23 @@ class _LiveDispatchScreenState extends State<LiveDispatchScreen> {
   RealtimeChannel? _driversChannel;
   RealtimeChannel? _driverLocationsBroadcastChannel;
   final Map<String, LatLng> _driverLiveLocations = {};
+  Timer? _countdownTimer;
 
   @override
   void initState() {
     super.initState();
     _startRidesRealtimeStream();
     _startDriverLocationsBroadcastListener();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted && (_currentOffers.isNotEmpty || _activeRides.isNotEmpty)) {
+        setState(() {});
+      }
+    });
   }
 
   @override
   void dispose() {
+    _countdownTimer?.cancel();
     _ridesSubscription?.cancel();
     _unsubscribeFromSelectedRide();
     _driverLocationsBroadcastChannel?.unsubscribe();
@@ -67,6 +74,140 @@ class _LiveDispatchScreenState extends State<LiveDispatchScreen> {
       _driverLocationsBroadcastChannel!.subscribe();
     } catch (e) {
       debugPrint("Error starting driver locations broadcast listener: $e");
+    }
+  }
+
+  Future<void> _cancelRide(String rideId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        title: const Text("Cancelar Corrida", style: TextStyle(color: Colors.white)),
+        content: const Text(
+          "Tem certeza que deseja cancelar esta corrida? Isso removera a corrida da fila de despacho imediatamente.",
+          style: TextStyle(color: Color(0xFF94A3B8)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text("Voltar", style: TextStyle(color: Color(0xFF94A3B8))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text("Confirmar Cancelamento", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _isLoadingRides = true);
+    try {
+      // 1. Cancel in database
+      await Supabase.instance.client
+          .from('rides')
+          .update({'status': 'cancelled'})
+          .eq('id', rideId);
+
+      // 2. Also expire any active offers
+      await Supabase.instance.client
+          .from('ride_offers')
+          .update({'status': 'expired'})
+          .eq('ride_id', rideId)
+          .eq('status', 'offered');
+
+      if (mounted) {
+        setState(() {
+          _selectedRide = null;
+          _currentOffers.clear();
+          _nearbyDrivers.clear();
+          _unsubscribeFromSelectedRide();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("✅ Corrida cancelada com sucesso!"),
+          backgroundColor: Colors.green,
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("❌ Erro ao cancelar corrida: $e"),
+          backgroundColor: Colors.red,
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoadingRides = false);
+    }
+  }
+
+  Future<void> _createSimulatedRideRequest() async {
+    setState(() => _isLoadingRides = true);
+    try {
+      // 1. Fetch first rider profile
+      final profilesRes = await Supabase.instance.client
+          .from('profiles')
+          .select('id')
+          .eq('role', 'rider')
+          .limit(1)
+          .maybeSingle();
+
+      String riderId = '';
+      if (profilesRes != null) {
+        riderId = profilesRes['id']?.toString() ?? '';
+      }
+
+      if (riderId.isEmpty) {
+        // Fallback to any profile if no rider role profile exists
+        final anyProfile = await Supabase.instance.client
+            .from('profiles')
+            .select('id')
+            .limit(1)
+            .maybeSingle();
+        riderId = anyProfile?['id']?.toString() ?? '';
+      }
+
+      if (riderId.isEmpty) {
+        throw Exception("Nenhum perfil cadastrado na base de dados para associar à corrida.");
+      }
+
+      // Generate pickup and dropoff coordinates in Castanhal Centro
+      // pickup: -1.2950, -47.9250
+      // dropoff: -1.3020, -47.9180
+      const pickupLat = -1.2950;
+      const pickupLng = -47.9250;
+      const dropoffLat = -1.3020;
+      const dropoffLng = -47.9180;
+
+      await Supabase.instance.client.from('rides').insert({
+        'rider_id': riderId,
+        'status': 'requested',
+        'pickup_address': 'Praça do Estrela, Castanhal',
+        'pickup_location': 'POINT($pickupLng $pickupLat)', // POINT(lng lat)
+        'dropoff_address': 'Apeú Centro, Castanhal',
+        'dropoff_location': 'POINT($dropoffLng $dropoffLat)', // POINT(lng lat)
+        'fare': 15.50,
+        'payment_method': 'cash',
+        'distance_meters': 1800,
+        'duration_seconds': 240,
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("✅ Corrida simulada criada em Castanhal! Verifique a lista."),
+          backgroundColor: Colors.green,
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("❌ Erro ao simular corrida: $e"),
+          backgroundColor: Colors.red,
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoadingRides = false);
     }
   }
 
@@ -303,19 +444,29 @@ class _LiveDispatchScreenState extends State<LiveDispatchScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           color: const Color(0xFF0F172A),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Icon(Icons.flash_on, color: Color(0xFF096EFF), size: 28),
-              const SizedBox(width: 12),
-              Text(
-                "Uppi Live Dispatch",
-                style: GoogleFonts.outfit(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+              Row(
+                children: [
+                  const Icon(Icons.flash_on, color: Color(0xFF096EFF), size: 28),
+                  const SizedBox(width: 12),
+                  Text(
+                    "Uppi Live Dispatch",
+                    style: GoogleFonts.outfit(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.playlist_add, color: Colors.greenAccent),
+                tooltip: "Simular Nova Corrida (Teste)",
+                onPressed: _createSimulatedRideRequest,
               ),
             ],
           ),
@@ -365,65 +516,88 @@ class _LiveDispatchScreenState extends State<LiveDispatchScreen> {
                   : ListView.builder(
                       itemCount: _activeRides.length,
                       itemBuilder: (context, index) {
-                        final ride = _activeRides[index];
-                        final isSelected = _selectedRide != null && _selectedRide!['id'] == ride['id'];
-                        final status = ride['status']?.toString().toUpperCase() ?? 'REQUESTED';
-                        
-                        return Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFF334155) : const Color(0xFF1E293B),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isSelected ? const Color(0xFF096EFF) : Colors.transparent,
-                              width: 1,
-                            ),
-                          ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            title: Text(
-                              ride['pickup_address'] ?? "Ponto de Partida",
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 4),
-                                Text(
-                                  "Destino: ${ride['dropoff_address'] ?? 'Não informado'}",
-                                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 6),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "R\$ ${double.tryParse(ride['fare']?.toString() ?? '0')?.toStringAsFixed(2)}",
-                                      style: const TextStyle(color: Color(0xFF6C9F12), fontWeight: FontWeight.bold),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: status == 'SEARCHING' ? const Color(0xFF096EFF).withOpacity(0.1) : Colors.amber.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        status,
-                                        style: TextStyle(
-                                          color: status == 'SEARCHING' ? const Color(0xFF096EFF) : Colors.amber,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                         final ride = _activeRides[index];
+                         final isSelected = _selectedRide != null && _selectedRide!['id'] == ride['id'];
+                         final status = ride['status']?.toString().toUpperCase() ?? 'REQUESTED';
+                         
+                         final createdAtStr = ride['created_at']?.toString() ?? '';
+                         String timeElapsed = '00:00';
+                         if (createdAtStr.isNotEmpty) {
+                           final createdAt = DateTime.tryParse(createdAtStr);
+                           if (createdAt != null) {
+                             final diff = DateTime.now().difference(createdAt.toLocal());
+                             final minutes = diff.inMinutes;
+                             final seconds = diff.inSeconds % 60;
+                             timeElapsed = "${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
+                           }
+                         }
+
+                         return Container(
+                           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                           decoration: BoxDecoration(
+                             color: isSelected ? const Color(0xFF334155) : const Color(0xFF1E293B),
+                             borderRadius: BorderRadius.circular(12),
+                             border: Border.all(
+                               color: isSelected ? const Color(0xFF096EFF) : Colors.transparent,
+                               width: 1,
+                             ),
+                           ),
+                           child: ListTile(
+                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                             title: Text(
+                               ride['pickup_address'] ?? "Ponto de Partida",
+                               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                               maxLines: 1,
+                               overflow: TextOverflow.ellipsis,
+                             ),
+                             subtitle: Column(
+                               crossAxisAlignment: CrossAxisAlignment.start,
+                               children: [
+                                 const SizedBox(height: 4),
+                                 Text(
+                                   "Destino: ${ride['dropoff_address'] ?? 'Não informado'}",
+                                   style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                                   maxLines: 1,
+                                   overflow: TextOverflow.ellipsis,
+                                 ),
+                                 const SizedBox(height: 6),
+                                 Row(
+                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                   children: [
+                                     Text(
+                                       "R\$ ${double.tryParse(ride['fare']?.toString() ?? '0')?.toStringAsFixed(2)}",
+                                       style: const TextStyle(color: Color(0xFF6C9F12), fontWeight: FontWeight.bold),
+                                     ),
+                                     Row(
+                                       children: [
+                                         const Icon(Icons.timer_outlined, color: Colors.redAccent, size: 12),
+                                         const SizedBox(width: 4),
+                                         Text(
+                                           timeElapsed,
+                                           style: const TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold),
+                                         ),
+                                         const SizedBox(width: 8),
+                                         Container(
+                                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                           decoration: BoxDecoration(
+                                             color: status == 'SEARCHING' ? const Color(0xFF096EFF).withOpacity(0.1) : Colors.amber.withOpacity(0.1),
+                                             borderRadius: BorderRadius.circular(6),
+                                           ),
+                                           child: Text(
+                                             status,
+                                             style: TextStyle(
+                                               color: status == 'SEARCHING' ? const Color(0xFF096EFF) : Colors.amber,
+                                               fontSize: 10,
+                                               fontWeight: FontWeight.bold,
+                                             ),
+                                           ),
+                                         ),
+                                       ],
+                                     ),
+                                   ],
+                                 ),
+                               ],
+                             ),
                             onTap: () {
                               setState(() {
                                 _selectedRide = ride;
@@ -492,6 +666,16 @@ class _LiveDispatchScreenState extends State<LiveDispatchScreen> {
         }
         final driverName = driver != null ? driver['full_name']?.toString() ?? 'Motorista' : 'Motorista';
         
+        final expiresAtStr = offer['expires_at']?.toString();
+        int remainingSeconds = 15;
+        if (expiresAtStr != null) {
+          final expiresAt = DateTime.tryParse(expiresAtStr)?.toLocal();
+          if (expiresAt != null) {
+            final diff = expiresAt.difference(DateTime.now()).inSeconds;
+            remainingSeconds = diff > 0 ? diff : 0;
+          }
+        }
+        
         if (loc != null) {
           markers.add(CustomMarker(
             id: 'driver_$driverId',
@@ -507,10 +691,10 @@ class _LiveDispatchScreenState extends State<LiveDispatchScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6C9F12),
+                        color: remainingSeconds <= 5 ? Colors.redAccent : const Color(0xFF6C9F12),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text("15s OFFER", style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+                      child: Text("${remainingSeconds}s OFFER", style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
                     ),
                     const Icon(Icons.local_taxi, color: Colors.greenAccent, size: 36),
                   ],
@@ -528,9 +712,9 @@ class _LiveDispatchScreenState extends State<LiveDispatchScreen> {
         GenericMap(
           provider: GoogleMapProvider(),
           initialLocation: Place(
-            const LatLng(-1.4558, -48.5024),
-            'Belém, PA',
-            'Belém',
+            const LatLng(-1.2950, -47.9250),
+            'Castanhal, PA',
+            'Castanhal',
           ),
           interactive: true,
           myLocationEnabled: false,
@@ -571,6 +755,11 @@ class _LiveDispatchScreenState extends State<LiveDispatchScreen> {
                             style: GoogleFonts.outfit(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                             overflow: TextOverflow.ellipsis,
                           ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.cancel_outlined, color: Colors.redAccent),
+                          tooltip: "Cancelar Corrida",
+                          onPressed: () => _cancelRide(_selectedRide!['id'].toString()),
                         ),
                         IconButton(
                           icon: const Icon(Icons.close, color: Colors.white70),
@@ -626,11 +815,20 @@ class _LiveDispatchScreenState extends State<LiveDispatchScreen> {
                             final driverName = driver != null ? driver['full_name']?.toString() ?? 'Motorista' : 'Motorista';
                             final status = offer['status']?.toString().toUpperCase() ?? 'PENDING';
                             
-                            Color statusColor = Colors.orangeAccent;
-                            if (status == 'ACCEPTED') statusColor = const Color(0xFF6C9F12);
-                            if (status == 'EXPIRED') statusColor = Colors.redAccent;
-                            if (status == 'REJECTED') statusColor = Colors.grey;
-
+                            Color statusColor = Colors.amber;
+                            if (status == 'ACCEPTED') statusColor = Colors.green;
+                            if (status == 'REJECTED' || status == 'EXPIRED') statusColor = Colors.red;
+                            
+                            final expiresAtStr = offer['expires_at']?.toString();
+                            int remainingSeconds = 15;
+                            if (expiresAtStr != null) {
+                              final expiresAt = DateTime.tryParse(expiresAtStr)?.toLocal();
+                              if (expiresAt != null) {
+                                final diff = expiresAt.difference(DateTime.now()).inSeconds;
+                                remainingSeconds = diff > 0 ? diff : 0;
+                              }
+                            }
+                            
                             return Container(
                               margin: const EdgeInsets.only(bottom: 8),
                               padding: const EdgeInsets.all(10),
@@ -648,8 +846,15 @@ class _LiveDispatchScreenState extends State<LiveDispatchScreen> {
                                         Text(driverName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                                         const SizedBox(height: 2),
                                         Text(
-                                          "Expirado em: ${offer['expires_at'] != null ? DateTime.parse(offer['expires_at']).toLocal().toString().substring(11, 19) : '-'}",
-                                          style: const TextStyle(color: Colors.white30, fontSize: 10),
+                                          status == 'OFFERED'
+                                              ? "Tempo restante: ${remainingSeconds}s"
+                                              : "Expirou em: ${offer['expires_at'] != null ? DateTime.parse(offer['expires_at']).toLocal().toString().substring(11, 19) : '-'}",
+                                          style: TextStyle(
+                                            color: status == 'OFFERED' && remainingSeconds <= 5 
+                                                ? Colors.redAccent 
+                                                : Colors.white30, 
+                                            fontSize: 10,
+                                          ),
                                         ),
                                       ],
                                     ),

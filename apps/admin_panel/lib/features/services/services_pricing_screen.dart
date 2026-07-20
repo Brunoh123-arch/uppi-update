@@ -298,8 +298,8 @@ class _ServicesPricingScreenState extends State<ServicesPricingScreen> {
               }
               return GridView.builder(
                 padding: const EdgeInsets.all(32),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: MediaQuery.of(context).size.width < 768 ? 1 : 2,
                   crossAxisSpacing: 24,
                   mainAxisSpacing: 24,
                   childAspectRatio: 1.8,
@@ -564,8 +564,8 @@ class _ServicesPricingScreenState extends State<ServicesPricingScreen> {
                     )
                   : GridView.builder(
                       padding: const EdgeInsets.all(32),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: MediaQuery.of(context).size.width < 768 ? 1 : 2,
                         crossAxisSpacing: 24,
                         mainAxisSpacing: 24,
                         childAspectRatio: 2.2,

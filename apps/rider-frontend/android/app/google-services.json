@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "408478040204-moobgdfjl6qd5iljuoopagghonpq8qf2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "online.uppi.motorista",
+            "certificate_hash": "62f55da406f7b9ba230431cbe6d59bc8da877fe3"
+          }
+        },
+        {
           "client_id": "408478040204-2goc9kfqm9sadcci2ue5gkculo21tiif.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -63,6 +71,22 @@
           "android_info": {
             "package_name": "online.uppi.rider",
             "certificate_hash": "44c8ba23a8a5f88b7478ca6576fc048d5766942d"
+          }
+        },
+        {
+          "client_id": "408478040204-h8j5vri9gufb8kc3b50kj4hlrq08lhao.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "online.uppi.rider",
+            "certificate_hash": "f95fef7304a5981e2650251ef9bd59405b4d2017"
+          }
+        },
+        {
+          "client_id": "408478040204-rn31r7dj7kf3gmt93rtinofn84ecllbg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "online.uppi.rider",
+            "certificate_hash": "62f55da406f7b9ba230431cbe6d59bc8da877fe3"
           }
         },
         {

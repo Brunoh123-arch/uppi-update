@@ -90,7 +90,7 @@ class _GenericMapState extends State<GenericMap> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("UPPI BRASIL - GenericMap build: provider is ${widget.provider.runtimeType}, is GoogleMapProvider? ${widget.provider is GoogleMapProvider}");
+    debugPrint("UPPI - GenericMap build: provider is ${widget.provider.runtimeType}, is GoogleMapProvider? ${widget.provider is GoogleMapProvider}");
     return Stack(
       children: [
         Positioned.fill(

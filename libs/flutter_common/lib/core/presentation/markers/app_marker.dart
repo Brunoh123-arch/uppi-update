@@ -44,8 +44,20 @@ class AppMarker extends StatelessWidget {
             ),
             child: Row(
               children: [
-                // Sem o ícone interno para liberar espaço e evitar overflow
                 Expanded(child: title),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9), // Slate 100
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Ionicons.pencil,
+                    size: 13,
+                    color: Color(0xFF475569), // Slate 600
+                  ),
+                ),
               ],
             ),
           ),

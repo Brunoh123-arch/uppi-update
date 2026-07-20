@@ -18,6 +18,7 @@ import 'package:flutter_common/core/presentation/waypoints_view/waypoints_view.d
 import 'package:flutter_common/core/presentation/avatars/driver_avatar.dart';
 import 'package:rider_flutter/features/home/features/track_order/presentation/blocs/track_order.dart';
 import 'package:rider_flutter/features/home/features/track_order/presentation/components/notice_bar.dart';
+import 'package:rider_flutter/core/widgets/waiting_ad_banner.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../dialogs/ride_options_dialog.dart';
@@ -117,9 +118,19 @@ class _OrderInProgressSheetState extends State<OrderInProgressSheet> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    widget.order.driver?.fullName ?? '',
-                                    style: context.labelLarge,
+                                  Row(
+                                    children: [
+                                      Text(
+                                        widget.order.driver?.fullName ?? '',
+                                        style: context.labelLarge,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      const Icon(
+                                        Ionicons.checkmark_circle,
+                                        color: Colors.blueAccent,
+                                        size: 16,
+                                      ),
+                                    ],
                                   ),
                                   DriverRating(
                                     rating: widget.order.driver?.rating,
@@ -203,6 +214,7 @@ class _OrderInProgressSheetState extends State<OrderInProgressSheet> {
                             ),
                           ),
                         ],
+                        const WaitingAdBanner(),
                         const Divider(
                           height: 16,
                           color: ColorPalette.neutral90,

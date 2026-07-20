@@ -25,7 +25,7 @@ class AppMarkerStop extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            "Stop $stopIndex",
+            "Parada $stopIndex",
             style: Theme.of(context).textTheme.labelMedium,
           ),
           Text(

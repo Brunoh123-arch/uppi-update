@@ -31,7 +31,6 @@ enum NavItem {
 
 const signedInNavItems = [
   NavItem.profile,
-  NavItem.wallet,
   // NavItem.uppiClub removido do menu: programa descontinuado (sem caixa para
   // cashback; a "assinatura" não cobrava nem entregava benefício real).
   NavItem.rideHistory,

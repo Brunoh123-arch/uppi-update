@@ -81,7 +81,7 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ success: true, ...result });
     }
 
-    // Caso 3: Enviar para todos os motoristas online (broadcast)
+    // Caso 3: Enviar para todos os motoristas ONLINE (broadcast de corrida ou alerta rápido)
     if (topic === 'all_drivers') {
       const { data: drivers } = await supa
         .from('driver_locations')
@@ -102,7 +102,69 @@ Deno.serve(async (req: Request) => {
       const tokens = (profiles || []).map((p) => p.fcm_token!).filter(Boolean);
 
       if (tokens.length === 0) {
-        return jsonResponse({ success: false, reason: 'Nenhum token FCM' });
+        return jsonResponse({ success: false, reason: 'Nenhum token FCM de motorista online' });
+      }
+
+      const result = await sendMulticast(tokens, title, message, data, channelId, imageUrl);
+      if (result.invalidTokens && result.invalidTokens.length > 0) {
+        await cleanMultipleFcmTokens(result.invalidTokens);
+      }
+      return jsonResponse({ success: true, ...result });
+    }
+
+    // Caso 4: Enviar para todos os PASSAGEIROS cadastrados (all_riders) - MARKETING DE CUPOM GRÁTIS!
+    if (topic === 'all_riders') {
+      const { data: profiles } = await supa
+        .from('profiles')
+        .select('fcm_token')
+        .eq('role', 'rider')
+        .not('fcm_token', 'is', null);
+
+      const tokens = (profiles || []).map((p) => p.fcm_token!).filter(Boolean);
+
+      if (tokens.length === 0) {
+        return jsonResponse({ success: false, reason: 'Nenhum token FCM de passageiro cadastrado' });
+      }
+
+      const result = await sendMulticast(tokens, title, message, data, channelId, imageUrl);
+      if (result.invalidTokens && result.invalidTokens.length > 0) {
+        await cleanMultipleFcmTokens(result.invalidTokens);
+      }
+      return jsonResponse({ success: true, ...result });
+    }
+
+    // Caso 5: Enviar para todos os MOTORISTAS cadastrados (all_drivers_registered)
+    if (topic === 'all_drivers_registered') {
+      const { data: profiles } = await supa
+        .from('profiles')
+        .select('fcm_token')
+        .eq('role', 'driver')
+        .not('fcm_token', 'is', null);
+
+      const tokens = (profiles || []).map((p) => p.fcm_token!).filter(Boolean);
+
+      if (tokens.length === 0) {
+        return jsonResponse({ success: false, reason: 'Nenhum token FCM de motorista cadastrado' });
+      }
+
+      const result = await sendMulticast(tokens, title, message, data, channelId, imageUrl);
+      if (result.invalidTokens && result.invalidTokens.length > 0) {
+        await cleanMultipleFcmTokens(result.invalidTokens);
+      }
+      return jsonResponse({ success: true, ...result });
+    }
+
+    // Caso 6: Enviar para ABSOLUTAMENTE TODOS os usuários cadastrados no banco (all)
+    if (topic === 'all') {
+      const { data: profiles } = await supa
+        .from('profiles')
+        .select('fcm_token')
+        .not('fcm_token', 'is', null);
+
+      const tokens = (profiles || []).map((p) => p.fcm_token!).filter(Boolean);
+
+      if (tokens.length === 0) {
+        return jsonResponse({ success: false, reason: 'Nenhum token FCM cadastrado no banco' });
       }
 
       const result = await sendMulticast(tokens, title, message, data, channelId, imageUrl);
