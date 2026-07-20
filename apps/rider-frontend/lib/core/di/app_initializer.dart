@@ -375,9 +375,12 @@ class AppInitializer {
     } catch (e) {
       debugPrint("Erro ao carregar app_settings: $e");
       final localApiKey = dotenv.maybeGet('GOOGLE_MAP_API_KEY');
-      if (localApiKey != null && localApiKey.isNotEmpty) {
+      if (localApiKey != null && localApiKey.isNotEmpty && !localApiKey.contains('AIzaSy_SUA_CHAVE_AQUI')) {
         debugPrint("UPPI BRASIL - Fallback de rede: Forçando Google Maps com chave local do .env");
         locator<SettingsCubit>().changeMapProvider(MapProviderEnum.googleMaps);
+      } else {
+        debugPrint("UPPI BRASIL - Fallback de rede: Usando OpenStreetMaps como fallback seguro");
+        locator<SettingsCubit>().changeMapProvider(MapProviderEnum.openStreetMaps);
       }
     }
   }

@@ -283,18 +283,8 @@ class GeoDatasourceImpl implements GeoDatasource {
       }
     }
 
-    // Se o provedor é Google Maps, NÃO faz fallback para Nominatim.
-    // Retorna diretamente as coordenadas brutas.
-    if (mapProvider == MapProviderEnum.googleMaps) {
-      debugPrint('[GeoDatasource] Google Maps selecionado — ignorando fallback Nominatim para reverse geocoding');
-      reverseProviderNotifier.value = "Fallback LatLng (Google)";
-      return Right(PlaceEntity(
-        coordinates: LatLngEntity(lat: latLng.latitude, lng: latLng.longitude),
-        address: '${latLng.latitude.toStringAsFixed(5)}, ${latLng.longitude.toStringAsFixed(5)}',
-        title: 'Local no mapa',
-      ));
-    }
-
+    // Se o provedor é Google Maps e não obteve resultado válido pelo Google, tenta Nominatim como fallback para não exibir coordenadas brutas
+    debugPrint('[GeoDatasource] Tentando Nominatim como fallback de reverse geocoding');
     try {
       final uri = Uri.parse(
         '$_nominatimBase/reverse'
