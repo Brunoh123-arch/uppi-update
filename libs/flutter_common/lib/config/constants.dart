@@ -34,7 +34,13 @@ class Constants {
   );
   static const List<double> walletPresets = [20, 50, 100];
   static GoogleMapProvider get googleMapProvider => GoogleMapProvider();
-  static const MapProviderEnum defaultMapProvider = MapProviderEnum.googleMaps;
+  static MapProviderEnum get defaultMapProvider {
+    final key = dotenv.maybeGet('GOOGLE_MAP_API_KEY');
+    if (key != null && key.isNotEmpty && !key.contains('AIzaSy_SUA_CHAVE_AQUI')) {
+      return MapProviderEnum.googleMaps;
+    }
+    return MapProviderEnum.openStreetMaps;
+  }
   static const MeasurementSystem defaultMeasurementSystem =
       MeasurementSystem.metric;
 

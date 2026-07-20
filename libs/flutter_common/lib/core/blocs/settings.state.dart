@@ -15,7 +15,7 @@ class SettingsState with _$SettingsState {
     final initialLocale = supported.contains(systemLocale) ? systemLocale : 'pt';
     return SettingsState(
       locale: initialLocale,
-      mapProvider: MapProviderEnum.googleMaps,
+      mapProvider: Constants.defaultMapProvider,
     );
   }
 
