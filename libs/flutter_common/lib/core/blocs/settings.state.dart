@@ -33,15 +33,7 @@ class SettingsState with _$SettingsState {
   }
 
   MapProviderEnum get mapProviderEnum {
-    final target = mapProvider ?? Constants.defaultMapProvider;
-    if (target == MapProviderEnum.googleMaps) {
-      final key = dotenv.maybeGet('GOOGLE_MAP_API_KEY');
-      final isGoogleKeyValid = key != null && key.isNotEmpty && !key.contains('AIzaSy_SUA_CHAVE_AQUI');
-      if (!isGoogleKeyValid) {
-        return MapProviderEnum.openStreetMaps;
-      }
-    }
-    return target;
+    return mapProvider ?? Constants.defaultMapProvider;
   }
 
   MapProvider get provider =>

@@ -361,25 +361,14 @@ class AppInitializer {
           }
         }
 
-        if (mapProviderStr != null) {
-          MapProviderEnum providerEnum;
-          switch (mapProviderStr) {
-            case 'googleMaps':
-              providerEnum = isRealGoogleKey ? MapProviderEnum.googleMaps : MapProviderEnum.openStreetMaps;
-              break;
-            case 'openStreetMaps':
-              providerEnum = MapProviderEnum.openStreetMaps;
-              break;
-            case 'mapBox':
-              providerEnum = MapProviderEnum.mapBox;
-              break;
-            default:
-              providerEnum = isRealGoogleKey ? MapProviderEnum.googleMaps : MapProviderEnum.openStreetMaps;
-          }
-
-          locator<SettingsCubit>().changeMapProvider(providerEnum);
-          debugPrint("UPPI BRASIL - SettingsCubit map provider alterado para: $providerEnum");
+        MapProviderEnum providerEnum = MapProviderEnum.openStreetMaps;
+        if (mapProviderStr == 'mapBox') {
+          providerEnum = MapProviderEnum.mapBox;
+        } else if (mapProviderStr == 'googleMaps' && isRealGoogleKey) {
+          providerEnum = MapProviderEnum.googleMaps;
         }
+        locator<SettingsCubit>().changeMapProvider(providerEnum);
+        debugPrint("UPPI BRASIL - SettingsCubit map provider alterado para: $providerEnum");
       } else {
         final localApiKey = dotenv.maybeGet('GOOGLE_MAP_API_KEY');
         if (localApiKey != null && localApiKey.isNotEmpty && !localApiKey.contains('AIzaSy_SUA_CHAVE_AQUI')) {
