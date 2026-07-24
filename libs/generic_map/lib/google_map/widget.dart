@@ -286,6 +286,23 @@ class _GoogleMapMapViewState extends State<GoogleMapView>
     if (!mounted || gen != _markersGen) return;
 
     final target = {for (final m in loaded) m.markerId: m};
+    final currentMap = {for (final m in markers) m.markerId: m};
+    bool hasMovement = false;
+    for (final entry in target.entries) {
+      final existing = currentMap[entry.key];
+      if (existing == null ||
+          existing.position != entry.value.position ||
+          existing.rotation != entry.value.rotation) {
+        hasMovement = true;
+        break;
+      }
+    }
+
+    if (!hasMovement && target.length == currentMap.length) {
+      _animFrom = target;
+      _animTo = target;
+      return;
+    }
 
     if (markers.isEmpty || !widget.animateMarkers) {
       // Primeira carga ou animação desativada: aplica direto, sem animação.
@@ -295,7 +312,7 @@ class _GoogleMapMapViewState extends State<GoogleMapView>
       return;
     }
 
-    _animFrom = {for (final m in markers) m.markerId: m};
+    _animFrom = currentMap;
     _animTo = target;
     _markerAnim
       ..stop()

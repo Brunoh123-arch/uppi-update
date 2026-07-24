@@ -47,9 +47,9 @@ class AppInitializer {
       try {
         final GoogleMapsFlutterPlatform mapsImplementation = GoogleMapsFlutterPlatform.instance;
         if (mapsImplementation is GoogleMapsFlutterAndroid) {
-          mapsImplementation.useAndroidViewSurface = false;
+          mapsImplementation.useAndroidViewSurface = true;
           await mapsImplementation.initializeWithRenderer(AndroidMapRenderer.latest);
-          debugPrint("[AppInitializer] Google Maps Android Renderer LATEST ativado com sucesso");
+          debugPrint("[AppInitializer] Google Maps Android Renderer LATEST ativado com sucesso (useAndroidViewSurface=true)");
         }
       } catch (e) {
         debugPrint("[AppInitializer] GoogleMapsAndroid surface config: $e");

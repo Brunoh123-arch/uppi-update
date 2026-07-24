@@ -179,28 +179,7 @@ class FlutterMapViewState extends State<FlutterMapView>
                   //     (position.dy + markerBox.size.height) - mapPosition.dy,
                   //   ),
                   // );
-                  final markerBox =
-                      widget.markerKey.currentContext?.findRenderObject()
-                          as RenderBox;
-                  final centerMarkerSize = widget.centerMarker!.size;
-                  final markerAlignment = widget.centerMarker!.alignment;
-                  final markerCenter = Offset(
-                    markerBox.size.width / 2,
-                    markerBox.size.height / 2,
-                  );
-                  final markerAlignmentOffset = Offset(
-                    (markerAlignment.x) * (centerMarkerSize.width / 2),
-                    (markerAlignment.y) * (centerMarkerSize.height / 2),
-                  );
-                  RenderBox mapBox =
-                      mapKey.currentContext?.findRenderObject() as RenderBox;
-                  Offset mapPosition = mapBox.localToGlobal(Offset.zero);
-
-                  Offset position = markerBox.localToGlobal(markerCenter);
-                  position = position + markerAlignmentOffset - mapPosition;
-                  final latLng = event.camera.pointToLatLng(
-                    Point(position.dx, position.dy),
-                  );
+                  final latLng = event.camera.center;
                   widget.onMapMoved?.call(Place(latLng, "", ""));
                   final place = await widget.addressResolver?.call(
                     widget.provider is MapBoxProvider
