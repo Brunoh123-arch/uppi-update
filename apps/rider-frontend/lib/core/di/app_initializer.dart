@@ -361,8 +361,10 @@ class AppInitializer {
           }
         }
 
-        MapProviderEnum providerEnum = MapProviderEnum.openStreetMaps;
-        if (mapProviderStr == 'mapBox') {
+        MapProviderEnum providerEnum = MapProviderEnum.googleMaps;
+        if (mapProviderStr == 'openStreetMaps') {
+          providerEnum = MapProviderEnum.openStreetMaps;
+        } else if (mapProviderStr == 'mapBox') {
           providerEnum = MapProviderEnum.mapBox;
         }
         locator<SettingsCubit>().changeMapProvider(providerEnum);
