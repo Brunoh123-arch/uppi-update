@@ -343,7 +343,16 @@ class AppInitializer {
             ? googleApiKeyStr
             : dotenv.maybeGet('GOOGLE_MAP_API_KEY');
 
-        if (resolvedApiKey != null && resolvedApiKey.isNotEmpty && mapProviderStr == 'googleMaps') {
+        final isRealGoogleKey = resolvedApiKey != null &&
+            resolvedApiKey.isNotEmpty &&
+            !resolvedApiKey.contains('AIzaSy_SUA_CHAVE_AQUI');
+
+        if (!isRealGoogleKey && (mapProviderStr == null || mapProviderStr == 'googleMaps')) {
+          debugPrint("UPPI BRASIL - Chave do Google Maps e invalida ou placeholder. Forcando OpenStreetMaps!");
+          mapProviderStr = 'openStreetMaps';
+        }
+
+        if (isRealGoogleKey && mapProviderStr == 'googleMaps') {
           try {
             await injectGoogleMaps(resolvedApiKey).timeout(const Duration(seconds: 7));
           } catch (e) {
@@ -356,7 +365,7 @@ class AppInitializer {
           MapProviderEnum providerEnum;
           switch (mapProviderStr) {
             case 'googleMaps':
-              providerEnum = MapProviderEnum.googleMaps;
+              providerEnum = isRealGoogleKey ? MapProviderEnum.googleMaps : MapProviderEnum.openStreetMaps;
               break;
             case 'openStreetMaps':
               providerEnum = MapProviderEnum.openStreetMaps;
@@ -365,11 +374,18 @@ class AppInitializer {
               providerEnum = MapProviderEnum.mapBox;
               break;
             default:
-              providerEnum = MapProviderEnum.googleMaps;
+              providerEnum = isRealGoogleKey ? MapProviderEnum.googleMaps : MapProviderEnum.openStreetMaps;
           }
 
           locator<SettingsCubit>().changeMapProvider(providerEnum);
           debugPrint("UPPI BRASIL - SettingsCubit map provider alterado para: $providerEnum");
+        }
+      } else {
+        final localApiKey = dotenv.maybeGet('GOOGLE_MAP_API_KEY');
+        if (localApiKey != null && localApiKey.isNotEmpty && !localApiKey.contains('AIzaSy_SUA_CHAVE_AQUI')) {
+          locator<SettingsCubit>().changeMapProvider(MapProviderEnum.googleMaps);
+        } else {
+          locator<SettingsCubit>().changeMapProvider(MapProviderEnum.openStreetMaps);
         }
       }
     } catch (e) {
