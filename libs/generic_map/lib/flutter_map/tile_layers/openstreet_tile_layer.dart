@@ -5,11 +5,12 @@ import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:generic_map/flutter_map/widget.dart';
 
 TileLayer openStreetTileLayer({required bool useCachedTiles}) => TileLayer(
-  urlTemplate: 'https://mt0.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
-  maxNativeZoom: 20,
-  maxZoom: 22,
-  keepBuffer: 1,
-  panBuffer: 0,
+  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  userAgentTemplate: 'online.uppi.rider/3.3.0',
+  maxNativeZoom: 19,
+  maxZoom: 20,
+  keepBuffer: 2,
+  panBuffer: 1,
   tileDisplay: const TileDisplay.instantaneous(),
   tileProvider: useCachedTiles
       ? const FMTCStore('mapStore').getTileProvider()
