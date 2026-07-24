@@ -6,7 +6,6 @@ import 'package:generic_map/flutter_map/widget.dart';
 
 TileLayer openStreetTileLayer({required bool useCachedTiles}) => TileLayer(
   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-  userAgentTemplate: 'online.uppi.rider/3.3.0',
   maxNativeZoom: 19,
   maxZoom: 20,
   keepBuffer: 2,

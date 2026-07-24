@@ -364,8 +364,6 @@ class AppInitializer {
         MapProviderEnum providerEnum = MapProviderEnum.openStreetMaps;
         if (mapProviderStr == 'mapBox') {
           providerEnum = MapProviderEnum.mapBox;
-        } else if (mapProviderStr == 'googleMaps' && isRealGoogleKey) {
-          providerEnum = MapProviderEnum.googleMaps;
         }
         locator<SettingsCubit>().changeMapProvider(providerEnum);
         debugPrint("UPPI BRASIL - SettingsCubit map provider alterado para: $providerEnum");
