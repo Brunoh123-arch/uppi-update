@@ -268,10 +268,10 @@ class _HomeMapState extends State<HomeMap> {
                         final screenHeight = mediaQuery.size.height;
                         
                         final double bottomSheetHeight = state.maybeMap(
-                          ridePreview: (_) => HomeMap.isPreviewExpanded.value ? 560.0 : 220.0,
-                          rideInProgress: (_) => 300.0,
-                          rateDriver: (_) => 300.0,
-                          orElse: () => 160.0,
+                          ridePreview: (_) => 580.0,
+                          rideInProgress: (_) => 350.0,
+                          rateDriver: (_) => 350.0,
+                          orElse: () => 180.0,
                         );
 
                         if (isMobile) {
