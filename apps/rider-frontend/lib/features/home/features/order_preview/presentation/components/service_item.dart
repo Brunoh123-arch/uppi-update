@@ -128,8 +128,7 @@ class ServiceItem extends StatelessWidget {
                 opacity: animation,
                 child: SizeTransition(sizeFactor: animation, child: child),
               ),
-              child: (entity.priceAfterCouponApplied == null ||
-                      entity.priceAfterCouponApplied == entity.price)
+              child: entity.priceAfterCouponApplied == null
                   ? Text(
                       key: const ValueKey('normal_price'),
                       entity.price.formatCurrency(currency),
