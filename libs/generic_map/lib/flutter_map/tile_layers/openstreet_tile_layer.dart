@@ -15,7 +15,7 @@ TileLayer openStreetTileLayer({required bool useCachedTiles}) => TileLayer(
   tileProvider: useCachedTiles
       ? const FMTCStore('mapStore').getTileProvider()
       : CancellableNetworkTileProvider(
-          headers: const {
+          headers: {
             'User-Agent': 'online.uppi.rider/3.3.0',
           },
           silenceExceptions: true,
