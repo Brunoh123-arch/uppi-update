@@ -10,7 +10,7 @@ TileLayer openStreetTileLayer({required bool useCachedTiles}) => TileLayer(
   maxZoom: 22,
   keepBuffer: 1,
   panBuffer: 0,
-  tileDisplay: const TileDisplay.fadeIn(duration: Duration.zero),
+  tileDisplay: const TileDisplay.instantaneous(),
   tileProvider: useCachedTiles
       ? const FMTCStore('mapStore').getTileProvider()
       : CancellableNetworkTileProvider(silenceExceptions: true),
