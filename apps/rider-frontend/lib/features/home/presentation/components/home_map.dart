@@ -76,12 +76,10 @@ class _HomeMapState extends State<HomeMap> {
 
   void _fitRidePreviewBounds(List<LatLng> points) {
     if (points.length < 2) return;
-    final currentHash = "${points.first.latitude.toStringAsFixed(4)},${points.first.longitude.toStringAsFixed(4)}-${points.last.latitude.toStringAsFixed(4)},${points.last.longitude.toStringAsFixed(4)}-${points.length}";
-    if (_lastFitRouteHash == currentHash) return;
-    _lastFitRouteHash = currentHash;
-
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) mapViewController?.fitBounds(points);
+    Future.delayed(const Duration(milliseconds: 350), () {
+      if (mounted && mapViewController != null) {
+        mapViewController?.fitBounds(points);
+      }
     });
   }
 
