@@ -8,8 +8,9 @@ TileLayer openStreetTileLayer({required bool useCachedTiles}) => TileLayer(
   urlTemplate: 'https://mt0.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
   maxNativeZoom: 20,
   maxZoom: 22,
-  keepBuffer: 3,
-  panBuffer: 2,
+  keepBuffer: 1,
+  panBuffer: 0,
+  tileDisplay: const TileDisplay.fadeIn(duration: Duration.zero),
   tileProvider: useCachedTiles
       ? const FMTCStore('mapStore').getTileProvider()
       : CancellableNetworkTileProvider(silenceExceptions: true),
