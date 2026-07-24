@@ -41,17 +41,16 @@ export async function handleAcceptOrder(req: Request): Promise<Response> {
       return errorResponse(msg, 403, req);
     }
 
-    // Verificar assinatura na tabela protegida driver_subscriptions (bloqueada contra edições do cliente)
-    const { data: subscription } = await supa
-      .from('driver_subscriptions')
-      .select('valid_until')
-      .eq('driver_id', uid)
-      .maybeSingle();
+    // 1.1. Verificar saldo na carteira do motorista
+    const { data: driverWallet } = await supa
+      .from('profiles')
+      .select('wallet_balance')
+      .eq('id', uid)
+      .single();
 
-    if (subscription && subscription.valid_until) {
-      if (new Date(subscription.valid_until) < new Date()) {
-        return errorResponse('Assinatura Uppi vencida. Regularize sua mensalidade.', 403, req);
-      }
+    const currentBalance = Number(driverWallet?.wallet_balance) || 0.0;
+    if (currentBalance <= 0) {
+      return errorResponse('Seu saldo na Carteira Uppi está zerado. Faça uma recarga via Pix para continuar aceitando corridas.', 403, req);
     }
 
     // 2. Buscar a corrida
